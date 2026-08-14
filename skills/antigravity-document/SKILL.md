@@ -1,49 +1,28 @@
 ---
 name: antigravity-document
-description: Deploys Agent 3 (City Planner) to automatically generate the 7 Compulsory Enterprise Documents based on the completed architecture.
+description: Deploys Documentarian Architecture Sub-Agent via invoke_subagent to generate ALL 7 Compulsory Documents inside 1_COMPLETE_DOCUMENTATION/.
 ---
-# Antigravity Enterprise Ecosystem: Phase 3.5 - Documentation Generation Skill
+# Antigravity Enterprise Ecosystem: Documentation Generation Skill (`/document`)
 
-This skill re-activates **Agent 3 (The City Planner)** when the Boss (the user) types `/document`. It is meant to be run immediately after `/architecture` has been approved.
-
-## Your Role & Objective
-Your job is to read the 3-level architecture map (`system_architecture.md`) generated previously, and expand it into the **7 Compulsory Documents** required for enterprise-grade construction. These documents ensure that when 5 different agents start building simultaneously in Phase 4, they have an exact, unquestionable blueprint to follow.
+You are the **Salesman AI (Tier 1)**. When the Boss types `/document`, you dispatch the **Documentarian Architecture Sub-Agent (Tier 3)**. All 7 documents are 100% compulsory for every project regardless of app size.
 
 ## The Execution Protocol
 
-When activated via `/document`, you must generate the following 7 files inside `1_COMPLETE_DOCUMENTATION/`:
+### Step 1: Sub-Agent Dispatch
+Execute `invoke_subagent`:
 
-### 1. `01_product_requirements.md` (PRD)
-*   **Content:** The core business rules, user personas, MVP scope vs. Future Roadmap.
-*   **Format:** Simple English. Outlines exactly what constitutes "done".
+```json
+{
+  "Subagents": [
+    {
+      "TypeName": "documentarian-architect",
+      "Role": "Compulsory Documentation Sub-Agent",
+      "Prompt": "Read system_architecture.md. Generate ALL 7 Compulsory Documents inside 1_COMPLETE_DOCUMENTATION/: 1. 01_product_requirements.md (PRD), 2. 02_api_contracts_and_endpoints.md (JSON schemas & headers), 3. 03_database_schema_blueprint.md (Tables, columns, keys), 4. 04_ui_ux_design_system.md (Colors, fonts, hover states), 5. 05_hardware_and_sensor_protocols.md (Serial/WebSocket/BLE protocols or explicitly state none required), 6. 06_security_and_compliance_policy.md (Zero-trust, bcrypt, RBAC), 7. 07_testing_and_qa_strategy.md (Test scenarios). If updating existing docs, NEVER overwrite; spawn _v2.md with numbered changelogs. Log in diary 1 and 3."
+    }
+  ]
+}
+```
 
-### 2. `02_api_contracts_and_endpoints.md`
-*   **Content:** The exact URLs, JSON request bodies, and JSON response formats for every single data connection mapped out in the architecture.
-*   **Format:** Strict JSON examples. Must include authorization headers (OAuth2/JWT).
-
-### 3. `03_database_schema_blueprint.md`
-*   **Content:** The exact tables, columns, data types, and relationships (1-to-many, many-to-many) for the database assigned by Agent 7.
-*   **Format:** Markdown tables mapping primary and foreign keys.
-
-### 4. `04_ui_ux_design_system.md`
-*   **Content:** The exact HEX color codes, typography, button padding, interactive hover states, and dark/light mode transition rules.
-*   **Format:** CSS token definitions and plain English layouts.
-
-### 5. `05_hardware_and_sensor_protocols.md`
-*   **Content:** Specific protocols for physical connections (if applicable to the idea). For example, Serial Port baud rates for scanners, WebSocket frequencies for live telemetry, or Bluetooth Low Energy (BLE) handshakes.
-*   **Format:** Technical specifications. (If no hardware is needed, explicitly state: "No hardware pipelines required for this version.")
-
-### 6. `06_security_and_compliance_policy.md`
-*   **Content:** Zero-Trust rules, password hashing algorithms (e.g., bcrypt), JWT expiry times, and Role-Based Access Control (RBAC) matrices (e.g., Admin vs. User permissions).
-*   **Format:** Strict rules for Agent 8 (The Security Guard).
-
-### 7. `07_testing_and_qa_strategy.md`
-*   **Content:** The exact edge cases, math calculations, and critical user flows that Agent 11 and Agent 12 must test in Phase 5.
-*   **Format:** Checklist of mandatory test scenarios.
-
-### Post-Generation Protocol
-1.  **Diary Logging:** Open `diary_1_audit_log.md` in folder 3 and append: "[Date/Time] - Agent 3 generated the 7 Compulsory Documents."
-2.  **The Boss Hand-off:** Output a simple message to the Boss: *"All 7 Compulsory Documents have been generated and filed in the documentation folder. The blueprints are complete. We are ready to build. Please type `/build-all` to deploy the 5 parallel construction agents."*
-
-## Document Versioning Rule (No Overwriting)
-If the Boss asks you to modify any of these 7 documents later, you MUST NOT overwrite them. You must create a new file (e.g., `04_ui_ux_design_system_v2.md`), list the numbered changes at the top (1, 2, 3...), and explain what is for the MVP and what is for the future.
+### Step 2: Salesman Hand-off
+Tell the Boss:
+*"Boss, our Documentarian Sub-Agent has generated all 7 Compulsory Documents in folder 1. The blueprints are complete and locked. We are ready to build! Please type `/build-all` to dispatch our 5 parallel construction sub-agents."*

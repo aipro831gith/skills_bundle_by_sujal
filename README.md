@@ -1,72 +1,71 @@
-# Antigravity 2.0 Enterprise Ecosystem
+# Antigravity 2.0 Enterprise Ecosystem (`skills_bundle_by_sujal`)
 
-Welcome to the **Antigravity 2.0 Enterprise Ecosystem**! This package transforms your AI (Google Antigravity, Gemini CLI, Claude, Cursor, etc.) into a **17-Agent Professional Software Company**.
-
-You do not need to know how to code. You act as the **Boss / Chief Architect**. You type simple commands, and the AI takes over as the **Company Manager**, orchestrating 17 specialized AI employees to research, design, build, test, and polish enterprise-grade applications.
-
-## How the Team Works
-
-If you put 17 AI agents in a room and tell them to shout at each other, nothing gets done (this is the "over-scattered" AI problem). Our system solves this with **The 3 Universal Diaries**. The agents do not talk directly to each other. When one agent finishes its shift, it writes exactly what it did in a Diary. The next agent reads the Diary before starting. This ensures a perfect, lock-step workflow.
+Welcome to the official **Antigravity 2.0 Enterprise Ecosystem** created by Sujal! This package transforms your AI into a **3-Tier Multi-Agent Software Corporation** powered by native sub-agent invocation (`invoke_subagent`).
 
 ---
 
-## Complete Command List & The 17 Agents
+## The 3-Tier Enterprise Architecture
 
-### Global Initialization
-* **`/start`** - The AI introduces the system and automatically creates your 3 strict working folders and the 3 Universal Diaries. All other commands only work after this.
-* **`/end`** - Turns off the professional team mode and returns the AI to a standard chat assistant without deleting any files.
+```mermaid
+flowchart TD
+    A["👤 Boss (User) Issues Slash Command\n(e.g., /start, /build-all, /audit)"] --> B["🤝 Salesman / Account Manager (Tier 1 AI)\n(Understands requirements & talks to Boss)"]
+    B -->|Calls invoke_subagent| C["👔 Team Leader / Engineering Manager (Tier 2 Sub-Agent)\n(Orchestrates team & enforces Company Rules)"]
+    C -->|Spawns Concurrent Workers| D1["⚡ Sub-Agent 1: Researcher / Spec Writer"]
+    C -->|Spawns Concurrent Workers| D2["⚡ Sub-Agent 2: City Planner / Architect"]
+    C -->|Spawns Concurrent Workers| D3["⚡ Sub-Agent 3: 5 Build Agents (UI, API, DB, Sec, Git)"]
+    C -->|Spawns Concurrent Workers| D4["⚡ Sub-Agent 4: 3 QA Testers / Polisher / Surgeon"]
+    C -->|Spawns Concurrent Workers| D5["⚡ Sub-Agent 5: Auditor Recovery Agent"]
+    D1 & D2 & D3 & D4 & D5 --> E["📔 Log Work in 3 Universal Diaries"]
+    E --> F["✅ Team Leader Verifies & Reports Back to Salesman"]
+    F --> G["💬 Salesman Presents Simple English Update to Boss"]
+```
 
-### Phase 1: Research
-* **`/research`**
-  * **Agent 1 (The Researcher):** Compulsory searches the live web for competitors, API connections, hardware interfaces, and builds a market-beating strategy.
+---
 
-### Phase 2: Specification
-* **`/spec`**
-  * **Agent 2 (The Spec Writer):** Scans your computer/GitHub for other UI/Testing skills you might have, asks for permission to use them, and then writes `master_spec.md`. This is a strict, jargon-free rulebook that breaks down the entire application (e.g., exactly where buttons go, how the GST math is calculated, what updates when clicked). *Note: The AI will never overwrite this document; it will create v2, v3 with numbered changes if updated.*
+## How It Works (No Manual Sub-Agent Commands Required!)
 
-### Phase 3: Architecture
-* **`/architecture`**
-  * **Agent 3 (The City Planner):** Reads the rulebook and maps out the architecture in 3 careful steps: (1) The whole app, (2) The connection pipelines (like electricity/water in a city), (3) Detailed mapping of every feature.
-  * **Agent 4 (The Office Manager):** Creates `agents.md` (strict coding rules) and `tasks.md` (the step-by-step master checklist linking every agent's work).
-* **`/document`**
-  * Instructs Agent 3 to generate the 7 Compulsory Documents (UI Design, API connections, Hardware specs, Security rules, etc.) based on the architecture.
+You (the Boss) do **NOT** need to type `invoke_subagent`, `define_subagent`, or `/team-preview` manually! 
 
-### Phase 4: Construction
-* **`/build-all`**
-  * **Agent 5 (The Front-End Builder):** Builds interactive, beautiful visual buttons and screens.
-  * **Agent 6 (The Backend Builder):** Builds calculators, server engines, and backend logic.
-  * **Agent 7 (The Database Builder):** Builds the exact database requested (Firebase, Google Sheets, Custom DB).
-  * **Agent 8 (The Security Guard):** Locks down passwords, `.env` files, and defense-level security.
-  * **Agent 9 (The GitHub Saver):** Backs up stable code automatically.
+You simply type simple slash commands (e.g. `/start`, `/research`, `/spec`, `/architecture`, `/document`, `/build-all`, `/qa-test`, `/polish`, `/surgical`, `/audit`, `/context-save`). 
 
-### Phase 5: Testing & QA
-* **`/qa-test`**
-  * **Agent 10 (The Spell Checker):** Scans for typos and code syntax errors.
-  * **Agent 11 (The Math Checker):** Ensures the app calculates everything perfectly against the rulebook.
-  * **Agent 12 (The Human Tester):** Simulates a human clicking through the app. If a bug is found, it uses the **"3 Paths Rule"**—giving you 3 plain-English options to fix it, and recommending the best one.
+Behind the scenes:
+1. The **Salesman AI (Tier 1)** greets you, clarifies your vision, and receives your command.
+2. The skill file automatically executes the native `invoke_subagent` tool call to spawn the **Team Leader Sub-Agent (Tier 2)**.
+3. The Team Leader automatically dispatches specialized **Worker Sub-Agents (Tier 3)** in background threads to execute the task concurrently.
+4. All workers follow strict **Company Rules** (`AGENTS.md`) and log work in the **3 Universal Diaries**.
+5. The Team Leader checks the code and hands the clean report back to the Salesman, who presents a simple English summary to you!
 
-### Phase 6: Polish & Surgey
-* **`/polish`**
-  * **Agent 13 (The Polisher):** Scans the whole app for user experience (UX) enhancements, button placements, and reports required fixes to the Surgeon.
-* **`/surgical`**
-  * **Agent 14 (The Surgeon):** Contains the power of an Impact Analyzer. It checks exactly what will break if a button is changed, and surgically fixes the code without breaking rocket sensors or databases.
+---
 
-### Pre-Built Project Recovery
-* **`/audit`**
-  * **Agent 17 (The Auditor):** If you bring a half-broken or 90%-finished project, this agent reverse-engineers the code, creates an architecture map, asks you if it fulfills your original vision, and seamlessly fixes and rebuilds it.
+## Command Reference & Sub-Agent Map
 
-### Background Operations
-* **`/context-save` & `/context-load`**
-  * **Agent 15 (The Memory Keeper):** Saves a complete picture of your uploaded documents, chats, AI responses, plans, and files. Restores it perfectly when you come back.
-* **(Auto-Execution upon 100% Completion)**
-  * **Agent 16 (The Documentarian):** Automatically writes the `USER_MANUAL.md` for your software's end-users.
+| Command | Dispatched Sub-Agents | Responsibilities |
+| :--- | :--- | :--- |
+| **`/start`** | Team Leader Sub-Agent | Greets the Boss, sets up the 3 workspace folders and 3 blank diaries. |
+| **`/research`** | Researcher Sub-Agent | Compulsory live web search for market competitors, APIs, and hardware protocols. |
+| **`/spec`** | Spec Writer Sub-Agent | Detects local skills, asks for permission, generates `master_spec.md` with word-breakdown UI/math. Enforces immutable `_v2.md` versioning. |
+| **`/architecture`** | City Planner & Office Manager Sub-Agents | 3-Step city mapping (`system_architecture.md`), strict coding rules (`agents.md`), and step-by-step master checklist (`tasks.md`). |
+| **`/document`** | Documentarian Architecture Sub-Agent | Generates all 7 Compulsory Documents (PRD, APIs, DB Schema, UI/UX, Hardware, Security, QA). |
+| **`/build-all`** | **5 Concurrent Sub-Agents** (Front-End, Backend, DB, Security, GitHub Saver) | Runs true parallel background coding for UI, APIs, DB models, JWT auth, `.env` templates, and commit logs. |
+| **`/qa-test`** | **3 Concurrent Sub-Agents** (Spell Checker, Math Checker, Human Simulator) | Syntax check, math verification, browser click flow. Enforces the **3 Paths Rule** for bug resolution. |
+| **`/polish`** | Polisher Sub-Agent | UX sweep for button hover states, animations, mobile responsiveness. Reports cuts to Surgeon. |
+| **`/surgical`** | Surgeon Sub-Agent | Pre-Change Insurance Protocol (backs up file to folder 3 first), impact analysis, and precision code edit. |
+| **`/audit`** | Auditor Recovery Sub-Agent | Multi-angle reverse engineering for pre-built or broken projects. Asks Boss about dream vision and rebuilds seamlessly. |
+| **`/context-save`** | Memory Keeper Sub-Agent | Compresses all chats, files, plans, and diaries into a complete context snapshot. |
+| **`/context-load`** | Memory Keeper Sub-Agent | Restores workspace context perfectly for new sessions. |
+
+---
+
+## Core Protection Safeguards
+- **100% Compulsory 7 Documents**: All 7 blueprints are generated for every app regardless of scale.
+- **Pre-Change Surgical Insurance**: Files are backed up before any code modification.
+- **Immutable Spec Locks**: Document updates spawn `_v2.md` with numbered changelogs (1, 2, 3...) instead of overwriting.
+- **Company Rule Governance**: Every sub-agent is strictly bound to `AGENTS.md` and `.gemini`.
 
 ---
 
 ## Installation
 
-1. Copy the `.gemini` file to your home directory (or equivalent global config folder).
-2. Copy `AGENTS.md` and the `skills/` folder into your new project directory.
-3. Open your terminal/AI interface in the project folder and type `/start`.
-
-Welcome to the future of software engineering. You are the Boss. We are your team.
+1. Copy `.gemini` to your user home directory or project root.
+2. Place `AGENTS.md` and the `skills/` folder in your workspace root.
+3. Open your terminal or AI interface and type `/start`. Welcome to your 3-Tier Multi-Agent Software Corporation!

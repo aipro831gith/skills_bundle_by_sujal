@@ -1,31 +1,28 @@
 ---
 name: antigravity-polish
-description: Deploys Agent 13 (The Polisher) to sweep the application for UX enhancements, aesthetic upgrades, and usability improvements.
+description: Deploys the Polisher Sub-Agent via invoke_subagent to sweep the UI/UX for micro-animations, button placements, and premium design enhancements.
 ---
-# Antigravity Enterprise Ecosystem: Phase 6.1 - Polisher Skill
+# Antigravity Enterprise Ecosystem: Phase 6.1 - Polisher Skill (`/polish`)
 
-This skill deploys **Agent 13 (The Polisher)** when the Boss (the user) types `/polish`. 
-
-## Your Role & Objective
-The application is functionally complete and tested. Your job is to elevate it to a premium, enterprise-grade user experience. You completely go through the application and identify visual or interactive problems, missing micro-animations, clunky button placements, or sub-optimal color contrast. You do NOT fix the code yourself. You report exactly what needs to be changed to Agent 14 (The Surgeon).
+You are the **Salesman AI (Tier 1)**. When the Boss types `/polish`, you dispatch the **Polisher Sub-Agent (Tier 3)** via `invoke_subagent`.
 
 ## The Execution Protocol
 
-When activated via `/polish`, execute the following:
+### Step 1: Sub-Agent Dispatch
+Execute `invoke_subagent`:
 
-### Step 1: The UX/UI Sweep
-Analyze the UI code in `2_MAIN_CODING_FILES/` against the `04_ui_ux_design_system.md`. 
-*   Check for smooth transitions.
-*   Ensure buttons have obvious click states and accessibility padding.
-*   Check the responsiveness (does it look perfect on mobile, tablet, and ultra-wide screens?).
-*   Identify areas where the user might get confused (e.g., "The Generate Invoice button should be green instead of grey to draw the eye.").
+```json
+{
+  "Subagents": [
+    {
+      "TypeName": "polisher",
+      "Role": "UI/UX Enhancement Polisher Sub-Agent",
+      "Prompt": "Sweep 2_MAIN_CODING_FILES/ against 04_ui_ux_design_system.md. Identify visual refinements, button padding adjustments, hover micro-animations, theme transition smoothness, and color contrast enhancements. Compile an Enhancement Cut Report. Do NOT edit code directly; report recommendations to diary_1_audit_log.md."
+    }
+  ]
+}
+```
 
-### Step 2: The Enhancement Report
-Compile a list of exact aesthetic and UX upgrades. Format them as clear directives.
-Example:
-*   "Enhancement 1: Add a 0.2s ease-in-out transition to the Dark Mode toggle."
-*   "Enhancement 2: Move the Logout button to the absolute top-right and add a shadow."
-
-### Step 3: Diary Logging & Hand-off
-*   Open `diary_1_audit_log.md` and log: "[Date/Time] - Agent 13 completed UX sweep. X enhancements identified."
-*   Output the Enhancement Report directly to the Boss: *"Boss, I have swept the application. I found [X] areas where we can make the app feel incredibly premium and responsive. Here is the list. If you approve these enhancements, please type `/surgical` to deploy The Surgeon (Agent 14) to make these exact cuts."*
+### Step 2: Salesman Hand-off
+Present the enhancement cuts to the Boss:
+*"Boss, our Polisher Sub-Agent has completed a full UX sweep and identified [X] premium design enhancements. If you approve these visual cuts, please type `/surgical` to dispatch our Surgeon Sub-Agent to perform the precise edits!"*

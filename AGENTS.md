@@ -1,41 +1,38 @@
 LEVEL 2: PROJECT MASTER GUARDRAILS
 File Configuration: Save verbatim as AGENTS.md in your Project Root Folder
 
-Purpose: Enforces code quality, structural layout, framework scalability, directory patterns, and hardware/API portability options for this specific workspace.
+Purpose: Enforces code quality, company rules for sub-agents, directory layouts, and sub-agent coordination for this workspace.
 
 1. Strict 3-Folder Architecture Rule
-The agent team must strictly build, organize, and read the project within the following three root directories. Never scatter files outside this layout:
-• Folder 1: `1_COMPLETE_DOCUMENTATION/` - Houses the PRD, system design blueprints, interface specifications, and API data menus.
-• Folder 2: `2_MAIN_CODING_FILES/` - Houses the lightweight application engine, UI source components, modules, and cross-device compilation files.
-• Folder 3: `3_PROJECT_BACKUP_AND_DIARY/` - Houses old critical code block backups, records of added/deleted assets, changelogs, and rolling laboratory diary entries.
+The agent team must strictly build, organize, and read the project within the following three root directories:
+• Folder 1: `1_COMPLETE_DOCUMENTATION/` - Houses the PRD, system design blueprints, interface specifications, and API data menus (All 7 Compulsory Documents live here).
+• Folder 2: `2_MAIN_CODING_FILES/` - Houses the lightweight application engine, UI source components, backend modules, and cross-device compilation files.
+• Folder 3: `3_PROJECT_BACKUP_AND_DIARY/` - Houses old critical code block backups, pre-change surgical snapshots, changelogs, and rolling laboratory diary entries.
 
-2. Diary Records & Permanent Code Tracking
-• The Running Dictionary: Maintain a rolling master progress log inside `3_PROJECT_BACKUP_AND_DIARY/`. For every modification or terminal execution step, record a clear description of assets added, blocks deleted, files affected, and the engineering rationale behind the trajectory.
-• Diary 1 (Master Audit Log): Logs completed actions and handover states.
-• Diary 2 (Unconnected Pipeline & API Registry): Tracks API endpoints and flows awaiting integration.
-• Diary 3 (Task Matrix): Real-time status for all tasks (PENDING | IN_PROGRESS | COMPLETED | BLOCKED).
+2. Universal Company Rules for ALL Sub-Agents
+Regardless of an individual sub-agent's role or personality, ALL sub-agents dispatched via `invoke_subagent` MUST strictly follow these enterprise rules:
+• Company Rule 1 (Zero Direct Chat): Sub-agents DO NOT communicate directly with the Boss. Sub-agents execute tasks in isolated background threads and report outputs to the Team Leader or update Universal Diaries.
+• Company Rule 2 (Diary Compliance): Every sub-agent MUST log its completed work in `diary_1_audit_log.md` and update status in `diary_3_task_matrix.md`.
+• Company Rule 3 (No Overwriting Specs): Never overwrite existing spec/architect documents. Always spawn `_v2.md` files with numbered change logs.
+• Company Rule 4 (Surgical Insurance): Back up files to `3_PROJECT_BACKUP_AND_DIARY/` before executing code modifications.
+• Company Rule 5 (Graceful API Fallbacks): Wrap all external third-party tools, hardware connections, and database calls in `try/catch` statements with fallback handling.
 
-3. Ultra-Lightweight Code & Global DRY Enforcement
-• DRY (Don't Repeat Yourself) Shared Boxes: Never duplicate system logic across different codebase zones. If a feature (e.g., PDF compilation, data encoding, form validation) is needed across multiple app locations, extract it into a single, isolated Shared Service Module. Pass connection pathways to that module using parameter changes.
-• Performance Target: Code must be engineered for fast rendering within micro-milliseconds, optimized layouts, lightweight dependencies, smooth view navigation, and snappy interface control profiles.
+3. The 3 Universal Diaries
+• `diary_1_audit_log.md`: Master chronological log of all agent actions, sub-agent dispatches, and code events.
+• `diary_2_api_registry.md`: Active registry of external APIs, hardware baud rates, WebSockets, and pipeline contracts.
+• `diary_3_task_matrix.md`: Real-time status tracker for all tasks (`PENDING` | `IN_PROGRESS` | `COMPLETED` | `BLOCKED`).
 
-4. Reverse Engineering & Future-Proof Integration
-• Hardware & Third-Party Portability: Build the architecture to remain entirely decoupled from external frameworks. Every logic block must be written using clear abstractions so that the application can seamlessly hook into physical hardware layers (e.g., RFID scanners, biometric machines) or e-commerce pipelines (Shopify, Instagram, GST tax calculation matrices) in future updates.
-• In-Line Visual Connection Maps: At the start of every core functional block or API pipeline, inject a clear structural comment block specifying its usage areas and active links. This satisfies vulnerability protection against hidden data leak dependencies. Follow this comment block format:
-  // START LOGIC BLOCK: [Feature Name]
-  // ACTIVE CONNECTIONS SUMMARY: This module is currently linked to [X] operational areas:
-  // 1. Endpoint A: [Details]
-  // 2. Endpoint B: [Details]
-  // [List all active connections so moving or breaking lines doesn't orphan hidden dependencies]
+4. 7 Compulsory Documents Rule
+All 7 documents are MANDATORY for all applications regardless of size:
+1. `01_product_requirements.md` (PRD)
+2. `02_api_contracts_and_endpoints.md`
+3. `03_database_schema_blueprint.md`
+4. `04_ui_ux_design_system.md`
+5. `05_hardware_and_sensor_protocols.md`
+6. `06_security_and_compliance_policy.md`
+7. `07_testing_and_qa_strategy.md`
 
-5. Resilient Failures (Universal Graceful Fallbacks)
-• Fault-Tolerant Isolation: All external third-party tools, external APIs, and local state engines must be wrapped in catch statements with strict fallbacks. If an integration (e.g., Shopify API or a local device scanner) drops line or fails internally, the main application loop must never crash. Safely catch the anomaly, degrade performance gracefully, log the event to the project diary, and display a helpful manual entry message.
-
-6. Senior Enterprise Gating & Security Guardrails
-• Zero-Trust Environment Secret Management: Never write sensitive deployment passwords, cloud credentials, database strings, or authorization tokens directly into repository code strings. Always map secrets out into a root `.env` environment file and ensure it is safely listed in the `.gitignore` directory to avoid server leakage during public pushes.
-• Automated GitHub Continuity Pipeline: Maintain real-time safety tracking. Every time an individual application feature achieves 100% code validation and compiler health, compile the terminal staging sequences to execute a clean commit and push the stable build up to the GitHub repository branch. Ensure the descriptive commit logs mirror our Diary Notes.
-• Isolated Multi-Agent Gating: Code implementation tasks must utilize separate agent execution structures. The coding agent writes lines under plan mode limits, while a completely isolated Reviewer and Tester sub-agent triggers browser simulation testing scripts and code-quality checks before allowing code integration into the stable main branch.
-
-7. Task Breakdown and Manager Commands
-• When using `/architecture`, the Office Manager (Agent 04) MUST generate `tasks.md`. It must break down every task for all coding agents in a step-by-step format, showing how they communicate and connect.
-• The Main Agent (Company Manager) never writes code, only orchestrates the 17 Sub-Agents and commands "Fix this, fix that".
+5. Sub-Agent Execution & Team Leader Responsibilities
+• The Team Leader Sub-Agent is responsible for spawning Tier 3 Sub-Agents via `invoke_subagent`.
+• Parallel Sub-Agent Spawning: During `/build-all` and `/qa-test`, the Team Leader MUST invoke multiple specialized sub-agents simultaneously (e.g., Front-End Builder, Backend Builder, DB Builder, Security Guard, GitHub Saver) to execute true concurrent background building.
+• Verification & Hand-off: The Team Leader reviews all sub-agent outputs, verifies code syntax, and hands the final report back to the Salesman (Tier 1 AI) to present to the Boss.

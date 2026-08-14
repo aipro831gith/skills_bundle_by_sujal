@@ -1,41 +1,61 @@
 ---
 name: antigravity-memory
-description: Deploys Agent 15 (Memory Keeper) to save/load project context, and Agent 16 (Documentarian) to automatically write the final user manual.
+description: Deploys Memory Keeper Sub-Agent for context save/load, and Documentarian Sub-Agent for auto-generating USER_MANUAL.md upon project completion.
 ---
-# Antigravity Enterprise Ecosystem: Background & Completion Skills
+# Antigravity Enterprise Ecosystem: Memory & Auto-Documentation Skill
 
-This file governs two specialized agents: **Agent 15 (The Memory Keeper)** and **Agent 16 (The Documentarian)**.
+This skill governs **Agent 15 (Memory Keeper)** and **Agent 16 (Documentarian User-Manual Writer)**.
 
-## 1. Agent 15 (The Memory Keeper)
-This agent runs in the background and is activated via `/context-save` or `/context-load`.
+## 1. Memory Keeper Sub-Agent (`/context-save` and `/context-load`)
 
-### The `/context-save` Protocol
-When the Boss types `/context-save`:
-1.  **The Snapshot:** You must scan the entire office space. Take a complete textual "picture" of the active environment.
-2.  **The Contents:** This picture must explicitly include: 
-    *   All documents the user uploaded during the session.
-    *   The complete chat text and AI responses so far.
-    *   All generated code files, documents, plans, checklists (`tasks.md`), fixes, and Markdown files across all 3 folders.
-3.  **The Save:** Compress this into a highly structured data string or a master `context_snapshot.md` file inside `3_PROJECT_BACKUP_AND_DIARY/`.
-4.  Tell the Boss: *"Boss, I have taken a complete snapshot of the office. Every uploaded document, chat response, and generated file is safely stored. You can close the AI. Type `/context-load` next time to restore it perfectly."*
+### Step 1: Sub-Agent Dispatch for `/context-save`
+When the Boss types `/context-save`, execute `invoke_subagent`:
 
-### The `/context-load` Protocol
-When the Boss types `/context-load`:
-1.  Read the `context_snapshot.md`.
-2.  Silently load all previous chat history, file states, and plans back into the AI's active memory (Context Window).
-3.  Output: *"Boss, the office is restored exactly as you left it. We are ready to continue."*
+```json
+{
+  "Subagents": [
+    {
+      "TypeName": "memory-keeper-save",
+      "Role": "Context Snapshot Memory Keeper Sub-Agent",
+      "Prompt": "Take a complete textual picture of the office space. Compile all uploaded user documents, chat text, AI responses, code files, plans, tasks.md, and diaries into context_snapshot.md inside 3_PROJECT_BACKUP_AND_DIARY/. Log action in diary_1_audit_log.md."
+    }
+  ]
+}
+```
+
+### Step 2: Sub-Agent Dispatch for `/context-load`
+When the Boss types `/context-load`, execute `invoke_subagent`:
+
+```json
+{
+  "Subagents": [
+    {
+      "TypeName": "memory-keeper-load",
+      "Role": "Context Restore Memory Keeper Sub-Agent",
+      "Prompt": "Read context_snapshot.md in folder 3. Silently restore all project context, diaries, active file registries, and task matrices into memory."
+    }
+  ]
+}
+```
 
 ---
 
-## 2. Agent 16 (The Documentarian)
-This agent automatically activates when the software reaches 100% completion (e.g., after the Surgeon finishes the final cuts). It requires no command.
+## 2. Documentarian User-Manual Writer Sub-Agent (Auto-Completion)
 
-### The Auto-Documentation Protocol
-When the app is functionally complete, polished, and working:
-1.  **Analyze the System:** Read the `master_spec.md` and the final codebase in `2_MAIN_CODING_FILES/`.
-2.  **Write the Manual:** Generate a completely new file named `USER_MANUAL.md` in the root folder.
-3.  **Content:** This manual is for the *end-users* (the customers of the Boss). It must not contain coding instructions. It must contain:
-    *   How to log in.
-    *   How to use the core features (with step-by-step simple instructions).
-    *   How to troubleshoot common user errors.
-4.  **Hand-off:** Tell the Boss: *"Boss, the application is absolutely complete. I have automatically written the `USER_MANUAL.md` for your future customers to read. Congratulations on a successful build!"*
+When the software achieves 100% completion (after `/surgical`), execute `invoke_subagent`:
+
+```json
+{
+  "Subagents": [
+    {
+      "TypeName": "user-manual-writer",
+      "Role": "End-User Documentation Sub-Agent",
+      "Prompt": "Read master_spec.md and 2_MAIN_CODING_FILES/. Generate a plain-English USER_MANUAL.md in the root directory for end-users (customers). Include login steps, core feature walkthroughs, button explanations, and user troubleshooting guides."
+    }
+  ]
+}
+```
+
+### Salesman Hand-off
+Tell the Boss:
+*"Boss, our Documentarian Sub-Agent has automatically generated the `USER_MANUAL.md` for your end-users and customers! Your enterprise application is completely finished, documented, and ready for deployment."*
