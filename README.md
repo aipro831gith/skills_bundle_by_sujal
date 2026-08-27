@@ -1,50 +1,94 @@
-# ANTIGRAVITY 2.0 ENTERPRISE MULTI-AGENT SYSTEM (`skills_bundle_by_sujal`)
+# Antigravity 2.0 Enterprise Ecosystem (`skills_bundle_by_sujal`)
 # Official GitHub Repository: https://github.com/aipro831gith/skills_bundle_by_sujal
 
-Welcome to the official **Antigravity 2.0 Enterprise Ecosystem** created by Sujal! Every single agent and sub-agent has its own **1-to-1 dedicated skill directory** in `skills/`.
+Welcome to the **Antigravity 2.0 Enterprise Ecosystem** organized into the clean, modular **Agent / Skill Architecture**.
 
 ---
 
-## 📂 Complete 1-to-1 Dedicated Skill Directory Inventory (22 Skill Directories)
+## 📂 Master Workspace Structure
 
-| Skill Directory Name (`skills/`) | Sub-Agent Full Name | Tier Level | Command Trigger | Primary Responsibility |
-| :--- | :--- | :--- | :--- | :--- |
-| **`skills/antigravity-start/`** | **Salesman AI** | Tier 1 | `/start`, `/end` | User greeting, slash command receiving, `/start`/`/end` triggers. |
-| **`skills/antigravity-team-leader/`** | **Agent 00: Team Leader Sub-Agent** | Tier 2 | `/start` (via Salesman) | Async non-blocking supervision, worker orchestration, loop engineering. |
-| **`skills/antigravity-research/`** | **Agent 01: Researcher Sub-Agent** | Tier 3 | `/research` | Compulsory live web search for competitors, APIs, hardware protocols. |
-| **`skills/antigravity-spec/`** | **Agent 02: Spec Writer Sub-Agent** | Tier 3 | `/spec` | Skill detection, word breakdown of UI/math (`master_spec.md`), immutable `_v2.md` specs. |
-| **`skills/antigravity-city-planner/`** | **Agent 03: City Planner Sub-Agent** | Tier 3 | `/architecture` | 3-Step macro city mapping (`system_architecture.md`). |
-| **`skills/antigravity-office-manager/`** | **Agent 04: Office Manager Sub-Agent** | Tier 3 | `/architecture` | Generates strict coding rules (`agents.md`) and master checklist (`tasks.md`). |
-| **`skills/antigravity-documentarian-architect/`** | **Agent 03b: Documentarian Architect** | Tier 3 | `/document` | Generates **ALL 7 Compulsory Documents** in folder 1. |
-| **`skills/antigravity-frontend-builder/`** | **Agent 05: Front-End Builder Sub-Agent** | Tier 3 | `/build-all` | Reads `frontend_builder.md`, `1_MD`, `2_MD`, `3_MD`, `N_MD`; designs UI/UX layouts & 3-state hover buttons. |
-| **`skills/antigravity-backend-builder/`** | **Agent 06: Backend Builder Sub-Agent** | Tier 3 | `/build-all` | Reads `backend_builder.md`; parameterized DB queries & exact math logic. |
-| **`skills/antigravity-database-builder/`** | **Agent 07: Database Builder Sub-Agent** | Tier 3 | `/build-all` | ORM models for PostgreSQL, Firebase, MongoDB, Google Sheets with indexing. |
-| **`skills/antigravity-security-guard/`** | **Agent 08: Security Guard Sub-Agent** | Tier 3 | `/build-all` | Zero-trust JWT, bcrypt password hashing (salts >= 10), RBAC access controls, `.env`. |
-| **`skills/antigravity-github-saver/`** | **Agent 09: GitHub Saver Sub-Agent** | Tier 3 | `/build-all` | Generates `.gitignore`, dependency typosquatting checks, simulated commit logs. |
-| **`skills/antigravity-spell-checker/`** | **Agent 10: Spell Checker Sub-Agent** | Tier 3 | `/qa-test` | Syntax check, compiler error verification, unhandled exception checks. |
-| **`skills/antigravity-math-checker/`** | **Agent 11: Math Checker Sub-Agent** | Tier 3 | `/qa-test` | Verifies math calculations (\(Total \times 1.03\)) against spec. |
-| **`skills/antigravity-human-tester/`** | **Agent 12: Human Tester Sub-Agent** | Tier 3 | `/qa-test` | Simulates human browser clicks; enforces **3 Paths Rule** for bugs. |
-| **`skills/antigravity-polish/`** | **Agent 13: Polisher Sub-Agent** | Tier 3 | `/polish` | UX visual sweep for animations, responsive breakpoints, padding tweaks. |
-| **`skills/antigravity-surgical/`** | **Agent 14: Surgeon Sub-Agent** | Tier 3 | `/surgical` | Pre-Change Insurance Protocol (backs up file to folder 3 first), impact analysis, and precision code edit. |
-| **`skills/antigravity-memory-keeper/`** | **Agent 15: Memory Keeper Sub-Agent** | Tier 3 | `/context-save`, `/context-load`, Cron | Context snapshots + Scheduled Tasks (Cron) nightly context pruning. |
-| **`skills/antigravity-user-manual-writer/`** | **Agent 16: User Manual Writer** | Tier 3 | (Auto) | Auto-generates plain-English `USER_MANUAL.md` upon project completion. |
-| **`skills/antigravity-auditor/`** | **Agent 17: Auditor Recovery Sub-Agent** | Tier 3 | `/audit` | Multi-angle reverse engineering for pre-built or broken projects. Rebuilds according to Boss's dream vision. |
-| **`skills/antigravity-sec-ops/`** | **Agent 18: DevSecOps Sub-Agent** | Tier 3 | `/sec-ops` | Scans for SQL injections, PII leaks, open endpoints, typosquatted packages; outputs `06_sec_ops_audit_report.md`. |
-| **`skills/antigravity-hardware-compliance/`** | **Agent 19: Hardware Compliance Sub-Agent** | Tier 3 | `/hardware-compliance` | MISRA rules, C/C++/Rust pointer bounds checking, zero-panic runtime safety; outputs `08_hardware_safety_report.md`. |
+```
+skills_bundle_by_sujal/
+├── README.md                    <-- Complete Ecosystem Manual & Documentation
+├── AGENTS.md                    <-- Master Index containing @agents/ links
+├── .gemini                      <-- Global Configuration & Zero-Trust Rules
+│
+├── .agent/                      <-- Hidden directory for all tools and modular skills
+│   └── skills/                  <-- 33 Individual Skill Files
+│       ├── architecture_skill.md
+│       ├── auditor_skill.md
+│       ├── backend_builder_skill.md
+│       ├── build_skill.md
+│       ├── build_backend.md
+│       ├── build_frontend.md
+│       ├── city_planner_skill.md
+│       ├── database_builder_skill.md
+│       ├── document_skill.md
+│       ├── documentarian_architect_skill.md
+│       ├── frontend_1_MD_Design.md
+│       ├── frontend_2_MD_Design.md
+│       ├── frontend_3_MD_Design.md
+│       ├── frontend_N_MD_Design.md
+│       ├── frontend_builder_skill.md
+│       ├── github_saver_skill.md
+│       ├── hardware_compliance_skill.md
+│       ├── human_tester_skill.md
+│       ├── math_checker_skill.md
+│       ├── memory_keeper_skill.md
+│       ├── memory_skill.md
+│       ├── office_manager_skill.md
+│       ├── polish_skill.md
+│       ├── qa_skill.md
+│       ├── research_skill.md
+│       ├── sec_ops_skill.md
+│       ├── security_guard_skill.md
+│       ├── spec_skill.md
+│       ├── spell_checker_skill.md
+│       ├── start_skill.md
+│       ├── surgical_skill.md
+│       ├── team_leader_skill.md
+│       └── user_manual_writer_skill.md
+│
+└── agents/                      <-- 27 Agent Persona Files with @.agent/skills/ links
+    ├── team_leader.md
+    ├── architecture_agent.md
+    ├── auditor_agent.md
+    ├── backend_builder.md
+    ├── builder_agent.md
+    ├── city_planner.md
+    ├── database_builder.md
+    ├── document_agent.md
+    ├── documentarian.md
+    ├── frontend_builder.md
+    ├── github_saver.md
+    ├── hardware_compliance.md
+    ├── human_tester.md
+    ├── math_checker.md
+    ├── memory_keeper.md
+    ├── memory_agent.md
+    ├── office_manager.md
+    ├── polish_agent.md
+    ├── qa_agent.md
+    ├── research_agent.md
+    ├── sec_ops_agent.md
+    ├── security_guard.md
+    ├── spec_agent.md
+    ├── spell_checker.md
+    ├── start_agent.md
+    ├── surgical_agent.md
+    └── user_manual_writer.md
+```
 
 ---
 
-## 🎨 Extensible Front-End Builder Architecture (`skills/antigravity-frontend-builder/`)
-- `1_MD_Design_Skill.md`: Web SaaS Layout (Collapsible sidebar, top header profile/theme switch, CSS grid).
-- `2_MD_Design_Skill.md`: Mobile Flutter/Android Layout (Bottom navigation bar, sliver headers, card feeds).
-- `3_MD_Design_Skill.md`: Enterprise ERP Layout (Multi-Tab views, dense data tables, pagination, sortable columns).
-- `N_MD_Design_Skill.md`: Extensible pattern template for future custom design skills (4_MD, 5_MD, etc.).
-- **3-State Interactive Buttons:** Default, hover (`0.2s ease-in-out; scale(1.03)`), and active (`scale(0.98)`), plus automated click loading spinners.
+## 👔 3-Tier Enterprise Agent Hierarchy
+- **Tier 1 (Management):** `@agents/start_agent.md` (Salesman / Account Manager AI)
+- **Tier 2 (Supervision):** `@agents/team_leader.md` (Agent 00: Team Leader & Quality Controller)
+- **Tier 3 (Specialized Workforce):** 25 specialized agents covering Research, Specifications, City Planning, Full-Stack Construction, QA, Security Audits, Hardware MISRA Safety, and Memory Management.
 
 ---
 
-## Installation & Quick Start
-
-1. Copy `.gemini` to your user home directory or project root.
-2. Place `AGENTS.md` and the `skills/` folder in your workspace root.
-3. Open your terminal or AI interface and type `/start`. Welcome to your Enterprise Multi-Agent Software Corporation!
+## 🚀 Quick Start
+1. Place `.gemini` in your user home or root directory.
+2. Ensure `AGENTS.md`, `agents/`, and `.agent/skills/` are in your workspace root.
+3. Type `/start` to begin!
