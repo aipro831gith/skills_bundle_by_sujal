@@ -1,6 +1,7 @@
-# Antigravity 2.0 Enterprise Ecosystem (`skills_bundle_by_sujal`)
+# ANTIGRAVITY 2.0 ENTERPRISE MULTI-AGENT SYSTEM (`skills_bundle_by_sujal`)
+# Official GitHub Repository: https://github.com/aipro831gith/skills_bundle_by_sujal
 
-Welcome to the official **Antigravity 2.0 Enterprise Ecosystem (100/100 Rating Upgrade)** created by Sujal! Every single agent and sub-agent has its own **1-to-1 dedicated skill directory** in `skills/`.
+Welcome to the official **Antigravity 2.0 Enterprise Ecosystem** created by Sujal! Every single agent and sub-agent has its own **1-to-1 dedicated skill directory** in `skills/`.
 
 ---
 
@@ -15,7 +16,7 @@ Welcome to the official **Antigravity 2.0 Enterprise Ecosystem (100/100 Rating U
 | **`skills/antigravity-city-planner/`** | **Agent 03: City Planner Sub-Agent** | Tier 3 | `/architecture` | 3-Step macro city mapping (`system_architecture.md`). |
 | **`skills/antigravity-office-manager/`** | **Agent 04: Office Manager Sub-Agent** | Tier 3 | `/architecture` | Generates strict coding rules (`agents.md`) and master checklist (`tasks.md`). |
 | **`skills/antigravity-documentarian-architect/`** | **Agent 03b: Documentarian Architect** | Tier 3 | `/document` | Generates **ALL 7 Compulsory Documents** in folder 1. |
-| **`skills/antigravity-frontend-builder/`** | **Agent 05: Front-End Builder Sub-Agent** | Tier 3 | `/build-all` | Reads `frontend_builder.md`; designs UI/UX layouts & hover buttons. |
+| **`skills/antigravity-frontend-builder/`** | **Agent 05: Front-End Builder Sub-Agent** | Tier 3 | `/build-all` | Reads `frontend_builder.md`, `1_MD`, `2_MD`, `3_MD`, `N_MD`; designs UI/UX layouts & 3-state hover buttons. |
 | **`skills/antigravity-backend-builder/`** | **Agent 06: Backend Builder Sub-Agent** | Tier 3 | `/build-all` | Reads `backend_builder.md`; parameterized DB queries & exact math logic. |
 | **`skills/antigravity-database-builder/`** | **Agent 07: Database Builder Sub-Agent** | Tier 3 | `/build-all` | ORM models for PostgreSQL, Firebase, MongoDB, Google Sheets with indexing. |
 | **`skills/antigravity-security-guard/`** | **Agent 08: Security Guard Sub-Agent** | Tier 3 | `/build-all` | Zero-trust JWT, bcrypt password hashing (salts >= 10), RBAC access controls, `.env`. |
@@ -33,11 +34,12 @@ Welcome to the official **Antigravity 2.0 Enterprise Ecosystem (100/100 Rating U
 
 ---
 
-## 🛡️ Core Protection Safeguards
-- **1-to-1 Sub-Agent Skill Directory Isolation**: Every sub-agent has a dedicated folder and `SKILL.md` file.
-- **Pre-Change Surgical Insurance**: Files are backed up before any code modification.
-- **Immutable Spec Locks**: Document updates spawn `_v2.md` with numbered changelogs (1, 2, 3...) instead of overwriting.
-- **100% Parameterized DB Queries**: Zero raw SQL concatenation allowed.
+## 🎨 Extensible Front-End Builder Architecture (`skills/antigravity-frontend-builder/`)
+- `1_MD_Design_Skill.md`: Web SaaS Layout (Collapsible sidebar, top header profile/theme switch, CSS grid).
+- `2_MD_Design_Skill.md`: Mobile Flutter/Android Layout (Bottom navigation bar, sliver headers, card feeds).
+- `3_MD_Design_Skill.md`: Enterprise ERP Layout (Multi-Tab views, dense data tables, pagination, sortable columns).
+- `N_MD_Design_Skill.md`: Extensible pattern template for future custom design skills (4_MD, 5_MD, etc.).
+- **3-State Interactive Buttons:** Default, hover (`0.2s ease-in-out; scale(1.03)`), and active (`scale(0.98)`), plus automated click loading spinners.
 
 ---
 
@@ -45,4 +47,4 @@ Welcome to the official **Antigravity 2.0 Enterprise Ecosystem (100/100 Rating U
 
 1. Copy `.gemini` to your user home directory or project root.
 2. Place `AGENTS.md` and the `skills/` folder in your workspace root.
-3. Open your terminal or AI interface and type `/start`. Welcome to your 100/100 Enterprise Multi-Agent Software Corporation!
+3. Open your terminal or AI interface and type `/start`. Welcome to your Enterprise Multi-Agent Software Corporation!
