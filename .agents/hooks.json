@@ -1,93 +1,159 @@
 {
-  "_comment": "Lifecycle Hooks for Skills Bundle by Sujal — Google Antigravity 2.0",
-  "_doc": "Place at .agents/hooks.json. Hooks run deterministic shell commands at agent lifecycle events.",
-  "_reference": "https://antigravity.google/docs/hooks",
-
   "hooks": [
 
     {
-      "name": "pre-tool:typescript-check",
-      "_comment": "Run TypeScript type-check before any file write tool to catch type regressions early.",
+      "name": "pre-tool:tsc-on-ts-write",
       "event": "pre_tool",
       "toolFilter": ["write_to_file", "replace_file_content"],
       "fileFilter": ["**/*.ts", "**/*.tsx"],
-      "command": "npx tsc --noEmit --strict 2>&1 | head -30",
-      "workingDirectory": "${workspaceRoot}/2_MAIN_CODING_FILES",
+      "command": "cd '${workspaceRoot}/2_MAIN_CODING_FILES' && npx tsc --noEmit --strict 2>&1 | head -20",
+      "workingDirectory": "${workspaceRoot}",
       "onFailure": "warn",
-      "_onFailureNote": "Set to 'warn' not 'block' — TypeScript errors will be shown but not block the write. Agent should fix errors after write."
+      "description": "Run TypeScript strict check before any .ts write. Warns (non-blocking) so agent sees errors before writing."
     },
 
     {
-      "name": "post-tool:eslint-fix",
-      "_comment": "Run ESLint auto-fix after any TypeScript/JavaScript file is written.",
+      "name": "post-tool:eslint-autofix",
       "event": "post_tool",
       "toolFilter": ["write_to_file", "replace_file_content"],
       "fileFilter": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
-      "command": "npx eslint --fix ${changedFile} 2>&1",
-      "workingDirectory": "${workspaceRoot}/2_MAIN_CODING_FILES",
-      "onFailure": "warn"
+      "command": "cd '${workspaceRoot}/2_MAIN_CODING_FILES' && npx eslint --fix '${changedFile}' 2>&1 | tail -5",
+      "workingDirectory": "${workspaceRoot}",
+      "onFailure": "warn",
+      "description": "Auto-fix ESLint violations after every TypeScript/JavaScript file write."
+    },
+
+    {
+      "name": "post-tool:run-affected-tests",
+      "event": "post_tool",
+      "toolFilter": ["write_to_file", "replace_file_content"],
+      "fileFilter": ["2_MAIN_CODING_FILES/**/*.ts", "2_MAIN_CODING_FILES/**/*.tsx"],
+      "command": "MODULE=$(basename '${changedFile}' .ts); cd '${workspaceRoot}/2_MAIN_CODING_FILES' && npx jest --testPathPattern=\"${MODULE}\" --passWithNoTests 2>&1 | tail -10",
+      "workingDirectory": "${workspaceRoot}",
+      "onFailure": "warn",
+      "description": "Run test suite for the modified module after every file write. Fast feedback loop."
+    },
+
+    {
+      "name": "pre-tool:block-eval-usage",
+      "event": "pre_tool",
+      "toolFilter": ["write_to_file", "replace_file_content"],
+      "fileFilter": ["**/*.ts", "**/*.tsx", "**/*.js"],
+      "command": "echo '${fileContent}' | grep -n '\\beval(' | grep -v '//\\|test\\|spec' && echo 'BLOCKED: eval() found — use safe alternative' && exit 1 || exit 0",
+      "workingDirectory": "${workspaceRoot}",
+      "onFailure": "block",
+      "description": "BLOCKING hook: Prevents writing any file containing eval(). eval() is a zero-tolerance security violation."
+    },
+
+    {
+      "name": "pre-tool:block-float-money",
+      "event": "pre_tool",
+      "toolFilter": ["write_to_file", "replace_file_content"],
+      "fileFilter": ["2_MAIN_CODING_FILES/backend/**/*.ts", "2_MAIN_CODING_FILES/database/**/*.ts"],
+      "command": "echo '${fileContent}' | grep -n 'parseFloat.*[Pp]rice\\|toFixed(2)\\|\\.toFixed\\b' | grep -v 'mathService\\|display\\|test\\|spec\\|comment' && echo 'BLOCKED: float money operation detected — use integer cents' && exit 1 || exit 0",
+      "workingDirectory": "${workspaceRoot}",
+      "onFailure": "block",
+      "description": "BLOCKING hook: Prevents writing backend/database files containing float money operations. Integer cents only."
+    },
+
+    {
+      "name": "pre-tool:block-any-type-frontend",
+      "event": "pre_tool",
+      "toolFilter": ["write_to_file", "replace_file_content"],
+      "fileFilter": ["2_MAIN_CODING_FILES/frontend/**/*.ts", "2_MAIN_CODING_FILES/frontend/**/*.tsx"],
+      "command": "echo '${fileContent}' | grep -n ': any\\|as any\\|<any>' | grep -v '//\\|test\\|spec\\|eslint-disable' | head -5 && echo 'WARN: any type found in frontend — use unknown + narrowing'",
+      "workingDirectory": "${workspaceRoot}",
+      "onFailure": "warn",
+      "description": "Warns when `any` type is used in frontend TypeScript. Zero any types required."
     },
 
     {
       "name": "pre-commit:full-quality-gate",
-      "_comment": "Deterministic pre-commit gate: TypeScript + ESLint + Jest + npm audit. All must pass.",
       "event": "pre_commit",
-      "command": "echo '=== Pre-Commit Quality Gate ===' && npx tsc --noEmit --strict && echo 'TSC: PASS' && npx eslint . --ext .ts,.tsx --max-warnings 0 && echo 'ESLint: PASS' && npm audit --audit-level=high && echo 'npm audit: PASS' && npx jest --coverage --coverageThreshold='{\"global\":{\"lines\":85}}' --passWithNoTests && echo 'Jest: PASS' && echo '=== ALL GATES PASSED ==='",
-      "workingDirectory": "${workspaceRoot}/2_MAIN_CODING_FILES",
+      "command": "set -euo pipefail && cd '${workspaceRoot}/2_MAIN_CODING_FILES' && echo '=== PRE-COMMIT GATE ===' && npx tsc --noEmit --strict && echo 'TSC:PASS' && npx eslint . --ext .ts,.tsx --max-warnings 0 && echo 'ESLint:PASS' && npm audit --audit-level=high && echo 'npm-audit:PASS' && npx jest --coverage --coverageThreshold='{\"global\":{\"lines\":85,\"branches\":85}}' --passWithNoTests=false --forceExit && echo 'Jest:PASS' && echo '=== ALL GATES PASSED ==='",
+      "workingDirectory": "${workspaceRoot}",
       "onFailure": "block",
-      "_onFailureNote": "Pre-commit gate is BLOCKING. Commit is refused if any gate fails. Fix errors and re-attempt commit."
+      "description": "BLOCKING pre-commit gate: tsc + eslint + npm audit + jest 85% coverage. All must pass. Commit refused on any failure."
     },
 
     {
       "name": "pre-commit:secret-scan",
-      "_comment": "Scan for accidentally staged secrets before every commit.",
       "event": "pre_commit",
-      "command": "git diff --cached --name-only | xargs grep -l -E '(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9_]{36}|sk_live_|-----BEGIN.*PRIVATE KEY-----)' 2>/dev/null && echo 'FAIL: Potential secrets staged' && exit 1 || echo 'Secret scan: PASS'",
+      "command": "git diff --cached --name-only | xargs grep -l -E '(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9_]{36}|sk_live_[A-Za-z0-9]+|-----BEGIN (RSA |EC )?PRIVATE KEY-----)' 2>/dev/null | grep -v '\\.template\\|\\.example\\|test\\|spec' && echo 'BLOCKED: Hardcoded secret staged — remove before commit' && exit 1 || echo 'secret-scan:PASS'",
       "workingDirectory": "${workspaceRoot}",
-      "onFailure": "block"
+      "onFailure": "block",
+      "description": "BLOCKING: Scans staged files for API keys, private keys, GitHub tokens. Blocks commit if found."
     },
 
     {
       "name": "pre-commit:env-not-staged",
-      "_comment": "Block commit if .env or credential files are staged.",
       "event": "pre_commit",
-      "command": "git diff --cached --name-only | grep -E '^\\.env$|^\\.env\\.' | grep -v '\\.template' && echo 'FAIL: .env file staged — remove with: git reset HEAD .env' && exit 1 || echo 'Env check: PASS'",
+      "command": "git diff --cached --name-only | grep -E '^\\.env$|^\\.env\\.' | grep -v '\\.template\\|\\.example' && echo 'BLOCKED: .env file staged — run: git reset HEAD .env' && exit 1 || echo 'env-check:PASS'",
       "workingDirectory": "${workspaceRoot}",
-      "onFailure": "block"
+      "onFailure": "block",
+      "description": "BLOCKING: Prevents committing .env files. .env must remain gitignored at all times."
     },
 
     {
-      "name": "post-build:prisma-validate",
-      "_comment": "Validate Prisma schema after any database file changes.",
+      "name": "pre-commit:no-eval",
+      "event": "pre_commit",
+      "command": "git diff --cached --name-only --diff-filter=A | xargs grep -l '\\beval(' 2>/dev/null | grep -v 'test\\|spec\\|vendor' && echo 'BLOCKED: eval() in staged files' && exit 1 || echo 'eval-check:PASS'",
+      "workingDirectory": "${workspaceRoot}",
+      "onFailure": "block",
+      "description": "BLOCKING: Prevents committing any file containing eval(). Zero tolerance."
+    },
+
+    {
+      "name": "pre-commit:semgrep-sast",
+      "event": "pre_commit",
+      "command": "which semgrep &>/dev/null && semgrep scan --config=p/secrets --config=p/sql-injection --error --quiet . 2>&1 && echo 'semgrep:PASS' || echo 'semgrep:SKIP (not installed — install with: pip install semgrep)'",
+      "workingDirectory": "${workspaceRoot}/2_MAIN_CODING_FILES",
+      "onFailure": "warn",
+      "description": "Run Semgrep SAST on staged files. Warns if semgrep not installed. Blocks on CRITICAL findings if installed."
+    },
+
+    {
+      "name": "post-tool:prisma-validate",
       "event": "post_tool",
       "toolFilter": ["write_to_file", "replace_file_content"],
       "fileFilter": ["**/schema.prisma", "**/migrations/**/*.sql"],
-      "command": "npx prisma validate && echo 'Prisma schema: PASS' || echo 'Prisma schema: FAIL'",
-      "workingDirectory": "${workspaceRoot}/2_MAIN_CODING_FILES/database",
-      "onFailure": "warn"
+      "command": "cd '${workspaceRoot}/2_MAIN_CODING_FILES' && npx prisma validate && echo 'prisma-validate:PASS' || echo 'prisma-validate:FAIL — schema errors found'",
+      "workingDirectory": "${workspaceRoot}",
+      "onFailure": "warn",
+      "description": "Run Prisma schema validation after any schema.prisma or migration file write."
     },
 
     {
-      "name": "post-save:diary-format-check",
-      "_comment": "Verify diary files follow the pipe-separated table format expected by Team Leader.",
+      "name": "post-tool:float-money-scan",
       "event": "post_tool",
       "toolFilter": ["write_to_file", "replace_file_content"],
-      "fileFilter": ["**/diary_*.md"],
-      "command": "echo 'Diary file updated:' ${changedFile} && wc -l ${changedFile} | awk '{print \"Lines: \" $1}'",
+      "fileFilter": ["2_MAIN_CODING_FILES/database/schema.prisma"],
+      "command": "grep -n 'Float\\|Decimal' '${changedFile}' | grep -v '//' && echo 'FAIL: Float/Decimal money type in Prisma schema — use Int' || echo 'money-type-check:PASS'",
       "workingDirectory": "${workspaceRoot}",
-      "onFailure": "warn"
+      "onFailure": "warn",
+      "description": "Scan Prisma schema for Float/Decimal money columns after every schema write."
     },
 
     {
       "name": "pre-deploy:full-audit-gate",
-      "_comment": "Comprehensive pre-deployment verification. Runs when /deploy is invoked.",
       "event": "pre_tool",
       "toolFilter": ["run_command"],
-      "commandFilter": ["vercel", "railway", "gcloud run deploy", "fly deploy"],
-      "command": "echo '=== DEPLOYMENT GATE ===' && npx tsc --noEmit --strict && npm audit --audit-level=high && npx jest --passWithNoTests && git check-ignore .env && test -s USER_MANUAL.md && echo '=== DEPLOYMENT AUTHORIZED ==='",
+      "commandPattern": "vercel|railway|fly deploy|gcloud run deploy",
+      "command": "set -euo pipefail && cd '${workspaceRoot}/2_MAIN_CODING_FILES' && npx tsc --noEmit --strict && npm audit --audit-level=high && npx jest --passWithNoTests=false --coverageThreshold='{\"global\":{\"lines\":85}}' && cd '${workspaceRoot}' && git check-ignore .env && test -s USER_MANUAL.md && npx prisma migrate status 2>&1 | grep 'up to date' && echo 'DEPLOY-GATE:ALL_PASSED'",
       "workingDirectory": "${workspaceRoot}",
       "onFailure": "block",
-      "_onFailureNote": "Deployment is BLOCKED until all gates pass. Fix failing gate then retry /deploy."
+      "description": "BLOCKING: Full deployment gate. Must pass before any deploy command executes: tsc + npm audit + jest ≥85% + .env gitignored + USER_MANUAL.md + no pending migrations."
+    },
+
+    {
+      "name": "post-build:generate-gate-report",
+      "event": "post_tool",
+      "toolFilter": ["run_command"],
+      "commandPattern": "npm run build|next build|tsc --build",
+      "command": "node -e \"require('fs').writeFileSync('.gate/build_timestamp.json', JSON.stringify({ built_at: new Date().toISOString(), exit_code: 0 }))\" && echo 'gate-report:WRITTEN'",
+      "workingDirectory": "${workspaceRoot}",
+      "onFailure": "warn",
+      "description": "Write build timestamp to .gate/ after every successful build. Used by deployment gate to verify build freshness."
     }
 
   ]

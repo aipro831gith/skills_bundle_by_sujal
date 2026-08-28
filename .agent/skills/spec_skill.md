@@ -1,152 +1,224 @@
 ---
 name: antigravity-spec
-description: Deploys the Spec Writer Sub-Agent to produce master_spec.md — a locked, immutable product specification with word-level UI breakdowns, mathematical formula definitions, and versioned changelog enforcement.
+description: Master Specification Writer (Group 1, Agent 02). Converts research findings into a machine-readable 6-section master_spec.md with a DAG of feature tasks, strict input/output boundary contracts, and formula precision rules. Outputs JSON handoff schema for architecture agent.
 ---
 
-# ROLE: Agent 02 — Master Spec Writer
+# ROLE: Agent 02 — Master Specification Writer
 
 ## 1. CORE DIRECTIVE & SINGLE RESPONSIBILITY
 
-**DOES:** Read `research_report_v1.md` and Boss-confirmed requirements to produce `master_spec.md` — a single, locked, jargon-free product specification that defines every UI screen, button, state, data flow, and mathematical formula with enough precision that zero hallucination is possible during code generation.
+Produce `1_COMPLETE_DOCUMENTATION/master_spec.md` as a machine-readable contract (not a narrative document). Every feature is a DAG node with defined inputs, outputs, and failure fallbacks. Every formula is an integer-cent function signature. Every UI element has a named component slug.
 
-**DOES NOT:** Design system architecture, choose tech stacks, write code, create database schemas, or modify any existing `master_spec*.md` file (versioned updates create new `_v2.md` files only).
-
----
-
-## 2. PREREQUISITES & ENTRY GATES (WHAT MUST EXIST FIRST)
-
-| Gate | Required Condition | On Failure |
-|------|--------------------|------------|
-| SP-G1 | `1_COMPLETE_DOCUMENTATION/research_report_v1.md` exists and is non-empty | Tell Boss: "Research phase incomplete. Run /research first." HALT. |
-| SP-G2 | G1 status = COMPLETED in `diary_3_task_matrix.md` | HALT. Redirect to `/research`. |
-| SP-G3 | Boss has confirmed the product idea and target user (from Phase 1) | Confirm with Boss before dispatch. |
+**DOES NOT:** Recommend tech stack. Generate code. Make architecture decisions.
 
 ---
 
-## 3. STEP-BY-STEP EXECUTION PROTOCOL
+## 2. PREREQUISITES & ENTRY GATES
 
-**Step 1 — Custom Skill Pre-Flight Check**
-Ask Boss in plain English:
-*"Before I draft your product rulebook, should I use any specialized custom skills you have installed for UI generation or testing? (For example, Figma exporters or human testing scripts.)"*
+| Gate | Condition | Failure Action |
+|------|-----------|---------------|
+| SP-G1 | `research_report_v{N}.md` exists in `1_COMPLETE_DOCUMENTATION/` | HALT: run /research first |
+| SP-G2 | Boss has explicitly approved research report | HALT: wait for Boss "APPROVED" |
+| SP-G3 | `1_COMPLETE_DOCUMENTATION/` folder exists | Create it |
 
-Record Boss's response and include in Spec Writer sub-agent prompt.
+---
 
-**Step 2 — Spec Writer Sub-Agent Dispatch**
+## 3. MANDATORY master_spec.md SCHEMA (all 6 sections required)
+
+### Section 1 — Product Identity
+
+```yaml
+product_name: "{name}"
+one_line_value: "{who} uses this to {what} without {pain}"
+target_persona: "{role}, {context}, tech_comfort: {low|medium|high}"
+success_metric: "{primary KPI} >= {threshold} within {timeframe}"
+```
+
+### Section 2 — Feature DAG (Directed Acyclic Graph)
+
+Each feature node must define:
+
+```markdown
+## Feature: {SLUG} (e.g., F001_CREATE_INVOICE)
+
+| Field | Value |
+|-------|-------|
+| ID | F001 |
+| Name | Create Invoice |
+| Depends On | F000_AUTH_LOGIN |
+| Blocks | F002_SEND_INVOICE |
+| Priority | P0 \| P1 \| P2 |
+
+### Input Contract
+| Input | Type | Validation | Error Code |
+|-------|------|-----------|-----------|
+| client_id | UUID | Must exist in clients table | ERR_CLIENT_NOT_FOUND |
+| line_items | LineItem[] | length >= 1, each qty > 0 | ERR_EMPTY_INVOICE |
+| gst_rate | integer | 0–30 (percentage × 100 not needed — stored as int %) | ERR_INVALID_GST |
+
+### Output Contract
+| Output | Type | Guarantee |
+|--------|------|-----------|
+| invoice_id | UUID | Unique, immediately consistent |
+| total_cents | integer | = SUM(qty × unit_price_cents) + FLOOR(subtotal × gst_rate / 100) |
+| status | 'DRAFT' | Always DRAFT on creation |
+
+### Failure Fallback
+| Failure | HTTP Code | Client Action | Data Side Effect |
+|---------|-----------|--------------|-----------------|
+| ERR_CLIENT_NOT_FOUND | 404 | Show "Client not found" | None — transaction rolled back |
+| ERR_EMPTY_INVOICE | 422 | Show validation error | None |
+| DB_TIMEOUT | 503 | Show "Please retry" | None — SERIALIZABLE transaction aborted |
+```
+
+### Section 3 — Mathematical Formula Registry
+
+ALL formulas MUST be expressed as integer-cent TypeScript function signatures with example inputs/outputs:
+
+```typescript
+// FORMULA F-MATH-001: Line Item Total
+// RULE: qty and unit_price_cents are always positive integers. Result is always integer.
+function lineItemTotal(qty: number, unitPriceCents: number): number
+// Example: lineItemTotal(3, 1099) === 3297   ← 3 × $10.99 = $32.97
+
+// FORMULA F-MATH-002: GST Calculation
+// RULE: Uses Math.round() — never toFixed(), never parseFloat()
+function applyGST(subtotalCents: number, gstRatePercent: number): number
+// Example: applyGST(10000, 3) === 10300       ← $100.00 + 3% = $103.00
+
+// FORMULA F-MATH-003: Convert display price to cents
+// RULE: Called ONCE at API entry point. Internal system never touches floats.
+function toCents(displayPrice: string): number
+// Example: toCents("10.99") === 1099
+// Example: toCents("10.999") → throw ERR_INVALID_PRICE (more than 2 decimal places)
+
+// FORMULA F-MATH-004: Convert cents to display string
+function fromCents(cents: number): string
+// Example: fromCents(1099) === "10.99"
+// Example: fromCents(0) === "0.00"
+```
+
+**FORBIDDEN in formula section:**
+- `parseFloat`, `toFixed`, `Math.floor` on money, floating-point accumulation
+
+### Section 4 — UI Screen Inventory
+
+```markdown
+| Screen Slug | Route | Auth Required | Key Actions (button labels exact) |
+|-------------|-------|-------------|----------------------------------|
+| SCREEN_LOGIN | /login | No | [Log In], [Forgot Password?] |
+| SCREEN_DASHBOARD | /dashboard | Yes | [New Invoice], [View Reports] |
+| SCREEN_INVOICE_CREATE | /invoices/new | Yes | [Add Line Item], [Save Draft], [Send Invoice] |
+```
+
+**Rules:**
+- Button label text is the CANONICAL reference. `user_manual_writer_skill.md` uses these exact strings.
+- Every screen must list all user-reachable actions.
+
+### Section 5 — User Workflow Sequences
+
+```markdown
+## Workflow: WF001_CREATE_AND_SEND_INVOICE
+Actor: Authenticated freelancer user
+Precondition: At least 1 client exists in the system
+
+Steps:
+1. User lands on SCREEN_DASHBOARD
+2. User clicks [New Invoice] → navigates to SCREEN_INVOICE_CREATE
+3. User selects client from dropdown (calls GET /api/clients)
+4. User clicks [Add Line Item] → appends LineItemRow component
+5. User fills: description (text), qty (integer), unit_price (display $)
+   → toCents() called at step 5 on blur event (not on submit)
+6. System displays running total (lineItemTotal × items + GST) — read-only
+7. User clicks [Save Draft] → POST /api/invoices → receives invoice_id
+8. User clicks [Send Invoice] → PATCH /api/invoices/{id}/send → status → 'SENT'
+9. System sends email to client, navigates user to SCREEN_DASHBOARD with success toast
+
+Error States:
+- Step 5: qty = 0 or negative → show inline "Quantity must be at least 1"
+- Step 8: email delivery fails → status stays 'DRAFT', show "Email failed — please retry"
+```
+
+### Section 6 — Acceptance Criteria & Success Gates
+
+```markdown
+| Feature | Acceptance Test | Pass Condition |
+|---------|----------------|---------------|
+| F001_CREATE_INVOICE | POST /api/invoices with valid body | Returns 201, invoice_id UUID, total_cents correct |
+| F001_CREATE_INVOICE | POST /api/invoices with qty=0 | Returns 422 ERR_EMPTY_INVOICE |
+| F-MATH-001 | lineItemTotal(3, 1099) | === 3297 (integer) |
+| F-MATH-002 | applyGST(10000, 3) | === 10300 (integer) |
+| F-MATH-003 | toCents("10.999") | Throws ERR_INVALID_PRICE |
+```
+
+---
+
+## 4. HANDOFF SCHEMA — OUTPUT TO ARCHITECTURE AGENT
+
+After spec is Boss-approved, write `.gate/spec_handoff.json`:
+
 ```json
 {
-  "Subagents": [
-    {
-      "TypeName": "spec-writer",
-      "Role": "Master Spec Writer Sub-Agent",
-      "Prompt": "Read 1_COMPLETE_DOCUMENTATION/research_report_v1.md. Write master_spec.md inside 1_COMPLETE_DOCUMENTATION/ following this EXACT structure:\n\n## SECTION 1: PRODUCT OVERVIEW\nProduct name, one-sentence description, target user persona (name, job role, daily pain), and primary value proposition.\n\n## SECTION 2: COMPLETE UI SCREEN INVENTORY\nFor EVERY screen in the application, document:\n- Screen name (exact)\n- Layout description (e.g., 'Left sidebar 240px fixed, main content fluid grid 12-column, top header 64px fixed')\n- Every button: exact label text, position (e.g., 'top-right corner of card'), 3 visual states (default/hover/active)\n- Every form field: label, placeholder, validation rule (e.g., 'email: must match RFC 5322 regex, max 254 chars')\n- Every dynamic element: what triggers it, what it shows (e.g., 'Invoice total auto-updates on quantity change without page reload')\n- Navigation: exact click path from this screen to every other reachable screen\n\n## SECTION 3: BUSINESS LOGIC & MATHEMATICAL FORMULAS\nFor EVERY calculation in the product:\n- Formula name\n- Plain English explanation\n- Exact mathematical formula (e.g., GST_total = base_price * 1.03)\n- Precision rule: integer cents (multiply by 100, use integer math, divide by 100 for display) OR big-number library\n- Edge cases: what happens at 0, negative values, null inputs\n\n## SECTION 4: DATA ENTITIES & RELATIONSHIPS (PLAIN ENGLISH)\nList every data entity (e.g., User, Invoice, Product). For each: list fields in plain English, relationships (e.g., 'One Invoice belongs to one User, has many InvoiceLineItems'), and key business rules (e.g., 'Invoice cannot be deleted if payment_status is PAID').\n\n## SECTION 5: USER WORKFLOWS (CLICK PATHS)\nFor each primary user journey: step-by-step numbered list from entry to completion. Include error paths (e.g., 'If login fails: show red banner, do NOT clear email field, log failed attempt').\n\n## SECTION 6: MVP vs FUTURE ROADMAP\nClearly separate: MVP features (must ship v1) from Future Roadmap (do not build now). Mark boundary explicitly.\n\nIMMUTABLE VERSIONING RULE: If master_spec.md already exists, create master_spec_v2.md with numbered changelog at top (e.g., 'Change 1: Added Invoice Delete Restriction rule to Section 4'). NEVER overwrite existing spec.\n\nUpdate diary_1_audit_log.md and diary_3_task_matrix.md (G2 = IN_PROGRESS)."
-    }
-  ]
+  "handoff_id": "SPEC-{ISO8601}",
+  "from_agent": "spec_writer_agent_02",
+  "to_agent": "architecture_agent_03",
+  "boss_approved_at": "ISO8601 timestamp",
+  "spec_version": "v1",
+  "feature_count": 12,
+  "dag_node_count": 12,
+  "formula_count": 4,
+  "screen_count": 6,
+  "workflow_count": 3,
+  "constraints": {
+    "money_precision": "integer_cents",
+    "forbidden_operators": ["parseFloat", "toFixed", "eval"],
+    "auth_standard": "Argon2id_RS256",
+    "db_transaction": "SERIALIZABLE"
+  },
+  "spec_path": "1_COMPLETE_DOCUMENTATION/master_spec.md"
 }
 ```
 
-**Step 3 — Boss Review & Lock**
-Present to Boss:
-- Screen count total.
-- Formula count total.
-- MVP feature count vs Roadmap count.
+---
 
-Tell Boss:
-*"Your product rulebook (master_spec.md) is ready for review. It contains {N} screens, {M} business formulas, and {K} MVP features. Once you approve, this spec is LOCKED — all builders will use it as their single source of truth. Type `/architecture` to proceed."*
+## 5. STRICT CONSTRAINTS (HARD RULES)
+
+- **NEVER** write a feature without Input Contract, Output Contract, and Failure Fallback.
+- **NEVER** express a monetary formula using floating-point (floats, `toFixed`, `parseFloat`).
+- **NEVER** write `// TODO` or leave any placeholder in the spec.
+- **NEVER** let `master_spec.md` be fewer than 200 lines.
+- **NEVER** advance to G2 without `spec_handoff.json` showing `boss_approved_at`.
 
 ---
 
-## 4. STRICT TECHNICAL & SECURITY CONSTRAINTS (HARD RULES)
-
-- **NEVER** use vague descriptions like "a nice dashboard" or "some user settings". Every screen must have pixel/layout precision.
-- **NEVER** define a financial formula without an explicit precision rule (integer cents or big-number library). IEEE-754 floating-point ambiguity is forbidden.
-- **NEVER** overwrite an existing `master_spec.md`. ALWAYS create `master_spec_v2.md`.
-- **NEVER** mix MVP and Future Roadmap features in the same section. Boundary must be explicit.
-- **NEVER** skip documenting error states, empty states, and loading states for every screen.
-
-**NEVER DO:**
-- Do not use abbreviations or technical jargon in any field visible to the Boss.
-- Do not leave formula edge cases undefined (null, zero, negative inputs must be addressed).
-- Do not document future roadmap features in Section 2 (UI inventory is MVP only).
-- Do not proceed to `/architecture` without Boss explicit review acknowledgment.
-
----
-
-## 5. MANDATORY MACHINE-READABLE ARTIFACTS / OUTPUTS
-
-**`1_COMPLETE_DOCUMENTATION/master_spec.md`** must contain all 6 sections. Minimum viable content per section:
-
-```markdown
-# Master Product Spec v1
-Status: LOCKED
-Generated: {ISO8601}
-Approved by Boss: PENDING (update to APPROVED + timestamp when Boss confirms)
-
-## Section 1: Product Overview
-...
-
-## Section 2: UI Screen Inventory
-### Screen: {Name}
-- Layout: ...
-- Buttons: [label | position | default | hover | active]
-- Fields: [label | placeholder | validation rule]
-- Dynamic Elements: ...
-- Navigation: ...
-
-## Section 3: Business Logic & Formulas
-### Formula: {Name}
-- Description: ...
-- Formula: ...
-- Precision Rule: ...
-- Edge Cases: ...
-
-## Section 4: Data Entities
-### Entity: {Name}
-- Fields: ...
-- Relationships: ...
-- Business Rules: ...
-
-## Section 5: User Workflows
-### Workflow: {Name}
-1. Step one...
-
-## Section 6: MVP vs Future Roadmap
-### MVP (Build Now)
-- Feature A
-### Future Roadmap (Do Not Build)
-- Feature B
-```
-
----
-
-## 6. VERIFICATION & EXIT GATES (COMMANDS & CRITERIA)
+## 6. VERIFICATION & EXIT GATES
 
 ```bash
-# Verify master_spec.md exists and has all 6 sections
-for section in "Section 1" "Section 2" "Section 3" "Section 4" "Section 5" "Section 6"; do
-  grep -q "$section" "1_COMPLETE_DOCUMENTATION/master_spec.md" \
-    && echo "PASS: $section present" \
-    || echo "FAIL: $section MISSING from spec"
+# S1: Spec has all 6 sections
+for s in "Product Identity" "Feature DAG" "Formula Registry" "UI Screen" "Workflow" "Acceptance Criteria"; do
+  grep -q "$s" "1_COMPLETE_DOCUMENTATION/master_spec.md" && echo "PASS: $s" || echo "FAIL: $s MISSING"
 done
 
-# Verify no ambiguous formula (check for the word "approximately" or "about")
-grep -i "approximately\|about \d\|roughly" "1_COMPLETE_DOCUMENTATION/master_spec.md" \
-  && echo "FAIL: Ambiguous formula language detected — replace with exact formula" \
-  || echo "PASS: No ambiguous formula language"
+# S2: Spec is non-trivial
+wc -l < "1_COMPLETE_DOCUMENTATION/master_spec.md" | awk '{if($1>=200) print "PASS:"$1"lines"; else print "FAIL:too_short_"$1"lines"}'
 
-# Verify spec is non-empty (minimum 200 lines for a viable spec)
-wc -l < "1_COMPLETE_DOCUMENTATION/master_spec.md" | awk '{if($1>=200) print "PASS"; else print "FAIL: Spec too short — likely incomplete"}'
+# S3: No float money in spec formulas
+grep -n "toFixed\|parseFloat\|0\.[0-9][0-9]" "1_COMPLETE_DOCUMENTATION/master_spec.md" \
+  | grep -v "example\|display\|comment" \
+  && echo "FAIL: float money in spec" || echo "PASS: no float money"
+
+# S4: Handoff schema exists
+test -s ".gate/spec_handoff.json" && echo "PASS: handoff schema exists" || echo "FAIL: handoff missing"
 ```
-
-All checks must pass before `/architecture` is unblocked.
 
 ---
 
-## 7. ERROR HANDLING & ESCALATION MATRIX
+## 7. ESCALATION MATRIX
 
 | Error | Severity | Action |
 |-------|----------|--------|
-| Research report not found | CRITICAL | HALT. Tell Boss: "Research report missing. Run /research first." |
-| Spec is shorter than 200 lines | HIGH | Flag as incomplete. Ask Spec Writer to expand Section 2 (UI inventory is most commonly under-specified). |
-| Ambiguous formula language detected | HIGH | Reject spec. Re-prompt Spec Writer with: "Replace all ambiguous language with exact mathematical expressions." |
-| Boss requests overwrite of existing spec | MEDIUM | Refuse overwrite. Explain versioning rule. Create `master_spec_v2.md` with changelog instead. |
-| Spec Writer sub-agent timeout | HIGH | Retry once. If timeout: write partial spec with `STATUS: PARTIAL` and list incomplete sections. Escalate to Team Leader. |
+| Feature missing failure fallback | HIGH | Do not submit spec. Complete all fallback entries. |
+| Formula uses float | CRITICAL | Rewrite as integer-cent function. Re-verify all examples. |
+| Spec < 200 lines | HIGH | Complete missing sections. Do not show Boss until ≥ 200 lines. |
+| Boss rejects spec | MEDIUM | Identify rejected sections. Rewrite only those sections. Re-present. |
+| DAG has circular dependency | CRITICAL | Redesign feature order. No feature may depend on a feature that depends on it. |

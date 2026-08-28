@@ -1,308 +1,369 @@
 ---
 name: antigravity-backend-builder
-description: Agent 06 — Backend API & Math Engine Builder. Constructs all API routes, controllers, service functions, and math logic. Enforces parameterized queries, integer-cent arithmetic, Argon2id handoff, typed error responses, and retry-wrapped external API calls. Consolidates build_backend.md (that file is retired).
+description: Backend API Builder (Group 3, Agent 06). Builds Express/Node.js backend with strict TypeScript, ACID-SERIALIZABLE transactions, Zod input validation on all routes, centralized error middleware, connection pool throttling, and typed AppError responses. Consumes arch_handoff.json.
 ---
 
-# ROLE: Agent 06 — Backend API & Business Logic Builder
-
-> **Consolidation Notice:** This skill supersedes and replaces `build_backend.md`. That file is archived. This is the single canonical backend builder skill.
+# ROLE: Agent 06 — Backend API Builder (Zero-Trust, Strict-Typed)
 
 ## 1. CORE DIRECTIVE & SINGLE RESPONSIBILITY
 
-**DOES:** Build ALL backend routes, controllers, service functions, and math engine code inside `2_MAIN_CODING_FILES/backend/` based on the OpenAPI 3.1 contract in `02_api_contracts_and_endpoints.md`. Enforce parameterized queries, integer-cent arithmetic, standardized error responses, and retry-wrapped external calls.
+Build ALL backend source files in `2_MAIN_CODING_FILES/backend/`. Every route validates input via Zod before touching DB. Every financial DB write uses SERIALIZABLE isolation. Every response uses the standard `ApiResponse<T>` envelope. Connection pool is a singleton with throttling.
 
-**DOES NOT:** Build authentication middleware (that is Agent 08's responsibility), write database migration files (Agent 07), build frontend components (Agent 05), or make architectural decisions that contradict `02_api_contracts_and_endpoints.md`.
-
----
-
-## 2. PREREQUISITES & ENTRY GATES (WHAT MUST EXIST FIRST)
-
-| Gate | Required Condition | On Failure |
-|------|--------------------|------------|
-| BE-G1 | `1_COMPLETE_DOCUMENTATION/02_api_contracts_and_endpoints.md` exists with OpenAPI 3.1 YAML | HALT. All backend endpoints MUST match the OpenAPI contract. Without it, nothing can be built. |
-| BE-G2 | `1_COMPLETE_DOCUMENTATION/01_product_requirements.md` exists | HALT. Need FR requirements to understand business rules. |
-| BE-G3 | `agents.md` exists with all coding rule sections | HALT. Coding standards not set. |
-| BE-G4 | Auth middleware file (`2_MAIN_CODING_FILES/backend/middleware/auth.ts`) exists from Security Guard (Agent 08) BEFORE wiring auth routes | Wait for Security Guard to complete before connecting authentication endpoints. |
+**DOES NOT:** Build frontend, write Prisma schema, handle deployment config.
 
 ---
 
-## 3. STEP-BY-STEP EXECUTION PROTOCOL
+## 2. PREREQUISITES & ENTRY GATES
 
-### Step 1 — Parse API Contract
-Read `02_api_contracts_and_endpoints.md` in full. Extract every endpoint:
-- Path + HTTP method
-- Authentication requirement (bearerAuth yes/no)
-- Request body schema
-- Response schemas (200, 400, 401, 403, 429, 500)
-- Rate limit (from x-rateLimit-limit header spec)
+| Gate | Condition | Failure Action |
+|------|-----------|---------------|
+| BB-G1 | `.gate/arch_handoff.json` exists | HALT: architecture not complete |
+| BB-G2 | `1_COMPLETE_DOCUMENTATION/03_boundary_schemas.ts` exists | HALT: boundary contracts missing |
+| BB-G3 | `2_MAIN_CODING_FILES/database/schema.prisma` exists (from Agent 07) | Wait 5 min, retry × 3, then flag |
 
-Create endpoint inventory list. Every endpoint in the OpenAPI spec MUST be implemented. Zero omissions.
+---
 
-### Step 2 — Project Scaffold
-```bash
-# TypeScript backend project structure (create if not exists)
-mkdir -p 2_MAIN_CODING_FILES/backend/{routes,controllers,services,middleware,utils,types}
-```
+## 3. MANDATORY CODE PATTERNS (use verbatim)
 
-### Step 3 — Database Query Rules (ABSOLUTE — NO EXCEPTIONS)
+### 3.1 — AppError Type & Response Envelope
 
 ```typescript
-// ✅ CORRECT — Parameterized query
-const user = await db.query(
-  'SELECT * FROM users WHERE email = $1 AND is_active = $2',
-  [email, true]
-);
+// backend/types/errors.ts
+export type ErrorCode =
+  | 'ERR_VALIDATION'
+  | 'ERR_NOT_FOUND'
+  | 'ERR_UNAUTHORIZED'
+  | 'ERR_FORBIDDEN'
+  | 'ERR_CONFLICT'
+  | 'ERR_INTERNAL'
+  | 'ERR_DB_TIMEOUT'
+  | 'ERR_INVALID_PRICE'
+  | 'ERR_EMPTY_INVOICE'
+  | 'ERR_CLIENT_NOT_FOUND';
 
-// ✅ CORRECT — Prisma ORM (safe by design)
-const user = await prisma.user.findUnique({
-  where: { email: email } // Prisma handles parameterization
-});
-
-// ❌ FORBIDDEN — String interpolation (SQL Injection vector)
-const user = await db.query(
-  `SELECT * FROM users WHERE email = '${email}'`  // NEVER
-);
-
-// ❌ FORBIDDEN — String concatenation
-const query = 'SELECT * FROM users WHERE email = ' + email; // NEVER
-```
-
-### Step 4 — Mathematical Precision Implementation
-
-```typescript
-// services/mathService.ts — ALL business calculations live here
-
-/**
- * Convert display price string to integer cents (safe storage format)
- * NEVER use parseFloat directly for money
- */
-export function toCents(displayPrice: string | number): number {
-  // Handle floating point: "10.99" → 1099
-  return Math.round(Number(displayPrice) * 100);
-}
-
-/**
- * Convert integer cents to display string
- */
-export function fromCents(cents: number): string {
-  return (cents / 100).toFixed(2);
-}
-
-/**
- * GST calculation — integer arithmetic only
- * @param baseCents - price in cents
- * @param gstRatePercent - e.g., 3 for 3% GST
- * @returns totalCents (base + GST)
- */
-export function applyGST(baseCents: number, gstRatePercent: number): number {
-  const gstCents = Math.round(baseCents * gstRatePercent / 100);
-  return baseCents + gstCents;
-}
-
-/**
- * Invoice line item total
- */
-export function lineItemTotal(unitPriceCents: number, quantity: number): number {
-  if (!Number.isInteger(unitPriceCents) || !Number.isInteger(quantity)) {
-    throw new Error('ERR_INVALID_CENTS: unitPriceCents and quantity must be integers');
+export class AppError extends Error {
+  constructor(
+    public readonly code: ErrorCode,
+    public readonly message: string,
+    public readonly statusCode: number,
+    public readonly field?: string,
+  ) {
+    super(message);
+    this.name = 'AppError';
   }
-  if (unitPriceCents < 0 || quantity < 1) {
-    throw new Error('ERR_INVALID_VALUE: unitPriceCents must be ≥ 0, quantity must be ≥ 1');
-  }
-  return unitPriceCents * quantity;
 }
-```
 
-### Step 5 — Standardized Error Response Format (REQUIRED for ALL error paths)
+export type ApiResponse<T> = {
+  data: T | null;
+  error: { code: ErrorCode; message: string; field?: string } | null;
+};
 
-```typescript
-// types/ApiError.ts
-export interface ApiErrorResponse {
-  error: {
-    code: string;       // e.g., "ERR_VALIDATION", "ERR_NOT_FOUND", "ERR_UNAUTHORIZED"
-    message: string;    // User-safe message (no stack traces, no DB errors)
-    requestId: string;  // UUID for log correlation
+export function ok<T>(data: T): ApiResponse<T> {
+  return { data, error: null };
+}
+
+export function fail<T>(error: AppError): ApiResponse<T> {
+  return {
+    data: null,
+    error: { code: error.code, message: error.message, field: error.field },
   };
 }
+```
 
-// middleware/errorHandler.ts
-import { v4 as uuidv4 } from 'uuid';
+### 3.2 — Integer-Cent Math Service (mathService.ts)
 
-export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
-  const requestId = uuidv4();
+```typescript
+// backend/services/mathService.ts
 
-  // Log full error internally (NEVER send to client)
-  console.error(JSON.stringify({
-    requestId,
-    timestamp: new Date().toISOString(),
-    errorCode: err.code ?? 'ERR_UNKNOWN',
-    // FORBIDDEN: do not log err.message if it contains SQL/stack/PII
-    // Log safe summary only:
-    errorType: err.constructor.name,
+/** Convert display price string to integer cents. Throws on invalid input. */
+export function toCents(display: string): number {
+  const match = display.match(/^(\d+)(?:\.(\d{1,2}))?$/);
+  if (!match) throw new AppError('ERR_INVALID_PRICE', 'Price must have at most 2 decimal places', 422);
+  const dollars = parseInt(match[1], 10);
+  const cents = match[2] ? parseInt(match[2].padEnd(2, '0'), 10) : 0;
+  return dollars * 100 + cents;
+}
+
+/** Convert integer cents to display string. */
+export function fromCents(cents: number): string {
+  if (!Number.isInteger(cents) || cents < 0)
+    throw new AppError('ERR_INTERNAL', 'Invalid cents value', 500);
+  return `${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, '0')}`;
+}
+
+/** Calculate line item total in cents. */
+export function lineItemTotal(qty: number, unitPriceCents: number): number {
+  if (!Number.isInteger(qty) || qty <= 0) throw new AppError('ERR_VALIDATION', 'Quantity must be a positive integer', 422);
+  if (!Number.isInteger(unitPriceCents) || unitPriceCents <= 0) throw new AppError('ERR_VALIDATION', 'Price must be a positive integer (cents)', 422);
+  return qty * unitPriceCents;
+}
+
+/** Apply GST. Returns new total including GST, in cents. */
+export function applyGST(subtotalCents: number, gstRatePercent: number): number {
+  if (!Number.isInteger(subtotalCents) || subtotalCents < 0) throw new AppError('ERR_INTERNAL', 'Invalid subtotal cents', 500);
+  const gstCents = Math.round(subtotalCents * gstRatePercent / 100);
+  return subtotalCents + gstCents;
+}
+
+/** Sum invoice line items and apply GST. Returns total in cents. */
+export function calculateInvoiceTotal(
+  lineItems: { qty: number; unitPriceCents: number }[],
+  gstRatePercent: number,
+): number {
+  if (lineItems.length === 0) throw new AppError('ERR_EMPTY_INVOICE', 'Invoice must have at least one line item', 422);
+  const subtotal = lineItems.reduce((sum, item) => sum + lineItemTotal(item.qty, item.unitPriceCents), 0);
+  return applyGST(subtotal, gstRatePercent);
+}
+```
+
+### 3.3 — ACID-SERIALIZABLE Financial Transaction Pattern
+
+```typescript
+// REQUIRED pattern for ALL financial writes (create invoice, record payment, etc.)
+import { prisma } from '../db/prismaClient';
+
+async function createInvoiceWithItems(
+  data: CreateInvoiceInput,
+): Promise<Invoice> {
+  return prisma.$transaction(
+    async (tx) => {
+      // Verify client exists inside transaction (reads are repeatable under SERIALIZABLE)
+      const client = await tx.client.findUnique({ where: { id: data.clientId } });
+      if (!client) throw new AppError('ERR_CLIENT_NOT_FOUND', 'Client not found', 404);
+
+      const totalCents = calculateInvoiceTotal(data.lineItems, data.gstRatePercent);
+
+      const invoice = await tx.invoice.create({
+        data: {
+          clientId: data.clientId,
+          totalCents,
+          gstRatePercent: data.gstRatePercent,
+          status: 'DRAFT',
+          lineItems: {
+            createMany: {
+              data: data.lineItems.map((item) => ({
+                description: item.description,
+                quantity: item.quantity,
+                unitPriceCents: item.unitPriceCents,
+                totalCents: lineItemTotal(item.quantity, item.unitPriceCents),
+              })),
+            },
+          },
+        },
+        include: { lineItems: true },
+      });
+
+      return invoice;
+    },
+    { isolationLevel: 'Serializable' },  // MANDATORY for financial writes
+  );
+}
+```
+
+### 3.4 — Centralized Error Middleware (Required in app.ts)
+
+```typescript
+// backend/middleware/errorMiddleware.ts
+import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
+import { AppError, fail } from '../types/errors';
+import { logger } from '../utils/logger';
+import { ZodError } from 'zod';
+
+export const errorMiddleware: ErrorRequestHandler = (
+  err: unknown,
+  req: Request,
+  res: Response,
+  _next: NextFunction,
+) => {
+  // Structured internal logging (never exposed to client)
+  logger.error({
+    requestId: req.headers['x-request-id'],
     path: req.path,
     method: req.method,
-  }));
+    error: err instanceof Error ? err.message : String(err),
+    stack: process.env.NODE_ENV === 'development' ? (err instanceof Error ? err.stack : undefined) : undefined,
+  });
 
-  // Map error types to HTTP status codes
-  const statusMap: Record<string, number> = {
-    'ERR_VALIDATION': 400,
-    'ERR_UNAUTHORIZED': 401,
-    'ERR_FORBIDDEN': 403,
-    'ERR_NOT_FOUND': 404,
-    'ERR_RATE_LIMIT': 429,
-  };
+  if (err instanceof AppError) {
+    return res.status(err.statusCode).json(fail(err));
+  }
 
-  const status = statusMap[err.code] ?? 500;
-  const userMessage = status < 500
-    ? err.message  // Client errors: safe to show
-    : 'An unexpected error occurred. Please try again.'; // Server errors: hide internals
+  if (err instanceof ZodError) {
+    const firstIssue = err.issues[0];
+    return res.status(422).json(
+      fail(new AppError('ERR_VALIDATION', firstIssue.message, 422, firstIssue.path.join('.'))),
+    );
+  }
 
-  res.status(status).json({
-    error: {
-      code: err.code ?? 'ERR_INTERNAL',
-      message: userMessage,
-      requestId,
-    }
-  } satisfies ApiErrorResponse);
+  // PrismaClientKnownRequestError: P2002 = unique constraint
+  if ((err as { code?: string }).code === 'P2002') {
+    return res.status(409).json(
+      fail(new AppError('ERR_CONFLICT', 'A record with this value already exists', 409)),
+    );
+  }
+
+  // Connection timeout
+  if ((err as { code?: string }).code === 'P1001') {
+    return res.status(503)
+      .set('Retry-After', '30')
+      .json(fail(new AppError('ERR_DB_TIMEOUT', 'Database temporarily unavailable', 503)));
+  }
+
+  // Fallback — never expose details in production
+  return res.status(500).json(
+    fail(new AppError('ERR_INTERNAL', 'An unexpected error occurred', 500)),
+  );
 };
 ```
 
-### Step 6 — External API Call Wrapper (REQUIRED for ALL third-party calls)
+### 3.5 — Route Handler Pattern (Zod-First)
 
 ```typescript
-// utils/retryFetch.ts
-export async function retryFetch<T>(
-  fn: () => Promise<T>,
-  options: { maxRetries?: number; timeoutMs?: number } = {}
-): Promise<T> {
-  const { maxRetries = 3, timeoutMs = 5000 } = options;
-
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-    try {
-      const result = await fn();
-      clearTimeout(timer);
-      return result;
-    } catch (err) {
-      clearTimeout(timer);
-      if (attempt === maxRetries) {
-        throw new Error(`ERR_EXTERNAL_API: Failed after ${maxRetries} retries. ${err instanceof Error ? err.message : 'Unknown'}`);
-      }
-      // Exponential backoff: 1s, 2s, 4s
-      await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt - 1)));
-    }
-  }
-  throw new Error('ERR_UNREACHABLE');
-}
-```
-
-### Step 7 — Route Implementation Pattern
-
-```typescript
-// routes/invoices.ts — follow this pattern for EVERY route file
+// backend/routes/invoiceRoutes.ts
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth';       // Agent 08 provides this
-import { requireRole } from '../middleware/rbac';       // Agent 08 provides this
-import { InvoiceController } from '../controllers/invoiceController';
-import { validateBody } from '../middleware/validate';
-import { CreateInvoiceSchema } from '../types/schemas';  // Zod schema
+import { CreateInvoiceSchema } from '../../1_COMPLETE_DOCUMENTATION/03_boundary_schemas';
+import { requireAuth } from '../middleware/authMiddleware';
+import { createInvoiceWithItems } from '../services/invoiceService';
+import { ok } from '../types/errors';
 
 const router = Router();
 
-// ALL non-public routes MUST have requireAuth middleware
-router.post('/', requireAuth, requireRole('user'), validateBody(CreateInvoiceSchema), InvoiceController.create);
-router.get('/:id', requireAuth, InvoiceController.getById);
-router.get('/', requireAuth, requireRole('admin'), InvoiceController.list); // admin only
+router.post('/', requireAuth, async (req, res, next) => {
+  try {
+    // Step 1: Validate BEFORE touching database
+    const parsed = CreateInvoiceSchema.safeParse(req.body);
+    if (!parsed.success) return next(parsed.error);  // Routes to Zod branch in errorMiddleware
 
-export default router;
+    // Step 2: Business logic
+    const invoice = await createInvoiceWithItems({
+      ...parsed.data,
+      userId: req.user.id,  // Injected by requireAuth middleware
+    });
+
+    // Step 3: Standard response envelope
+    return res.status(201).json(ok(invoice));
+  } catch (err) {
+    next(err);  // All errors route to centralized errorMiddleware
+  }
+});
+
+export { router as invoiceRouter };
+```
+
+### 3.6 — retryFetch for External API Calls
+
+```typescript
+// backend/utils/retryFetch.ts
+
+interface RetryOptions {
+  retries?: number;      // default: 3
+  backoffMs?: number;    // default: 500 (doubles each retry)
+  timeout?: number;      // default: 8000ms
+}
+
+export async function retryFetch(
+  url: string,
+  options: RequestInit & RetryOptions = {},
+): Promise<Response> {
+  const { retries = 3, backoffMs = 500, timeout = 8000, ...fetchOptions } = options;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      const response = await fetch(url, { ...fetchOptions, signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (response.ok || attempt === retries) return response;
+      throw new Error(`HTTP ${response.status}`);
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (attempt === retries) throw err;
+      await new Promise((r) => setTimeout(r, backoffMs * Math.pow(2, attempt)));
+    }
+  }
+  throw new Error('ERR_INTERNAL: retryFetch exceeded max retries');
+}
 ```
 
 ---
 
-## 4. STRICT TECHNICAL & SECURITY CONSTRAINTS (HARD RULES)
+## 4. OUTPUT SCHEMA — HANDOFF TO QA AGENT
 
-- **NEVER** write string-interpolated SQL. Zero exceptions. If reviewed and found: CRITICAL violation, immediate surgical fix required.
-- **NEVER** hardcode secrets (`process.env.JWT_SECRET` not the literal `"mysecret"`).
-- **NEVER** use `parseFloat()` or `Number()` for monetary arithmetic in business logic — only allowed in `toCents()` conversion at the entry boundary.
-- **NEVER** send stack traces, SQL errors, or internal file paths to API consumers.
-- **NEVER** call external APIs without the `retryFetch` wrapper.
-- **NEVER** implement password hashing — that is exclusively Agent 08's domain.
-- **NEVER** use `any` TypeScript type. Use `unknown` with type guards or specific interface types.
+Write `.gate/backend_handoff.json`:
 
-**NEVER DO:**
-- Do not skip the `errorHandler` middleware registration in app.ts.
-- Do not allow routes without explicit HTTP method handlers (e.g., no catch-all `router.all()`).
-- Do not log `req.body` directly — it may contain passwords or PII. Log sanitized request metadata only.
-- Do not implement financial calculations outside `services/mathService.ts`.
-
----
-
-## 5. MANDATORY MACHINE-READABLE ARTIFACTS / OUTPUTS
-
-```
-2_MAIN_CODING_FILES/backend/
-├── app.ts                      ← Express app setup (helmet, cors, rate-limit, routes)
-├── routes/
-│   └── {domain}.ts             ← One route file per API domain (invoices, users, etc.)
-├── controllers/
-│   └── {domain}Controller.ts   ← Business logic handlers, calls services
-├── services/
-│   ├── mathService.ts          ← ALL financial calculations (integer cents)
-│   └── {domain}Service.ts      ← Domain business logic calling DB
-├── middleware/
-│   └── errorHandler.ts         ← Central error handler (from Agent 06)
-├── utils/
-│   └── retryFetch.ts           ← External API retry wrapper
-└── types/
-    ├── ApiError.ts             ← Standardized error response type
-    └── schemas.ts              ← Zod schemas for all request bodies
+```json
+{
+  "handoff_id": "BB-{ISO8601}",
+  "from_agent": "backend_builder_agent_06",
+  "to_agent": "qa_agent_10",
+  "status": "COMPLETED",
+  "files_created": ["backend/routes/*.ts", "backend/services/*.ts", "backend/middleware/*.ts"],
+  "api_endpoints": [
+    { "method": "POST", "path": "/api/invoices", "auth": true, "validation": "CreateInvoiceSchema" }
+  ],
+  "invariants_verified": {
+    "no_float_money": true,
+    "serializable_transactions": true,
+    "zod_validation_all_routes": true,
+    "centralized_error_middleware": true,
+    "connection_pool_singleton": true
+  }
+}
 ```
 
 ---
 
-## 6. VERIFICATION & EXIT GATES (COMMANDS & CRITERIA)
+## 5. STRICT CONSTRAINTS
+
+- **NEVER** use `parseFloat`, `toFixed`, or floating-point math on monetary values.
+- **NEVER** write a route handler without Zod input validation as the first operation.
+- **NEVER** expose stack traces to API clients in `NODE_ENV === 'production'`.
+- **NEVER** create a new PrismaClient per request — singleton only.
+- **NEVER** write financial DB operations outside a `prisma.$transaction({ isolationLevel: 'Serializable' })`.
+- **NEVER** use string-interpolated SQL — Prisma ORM or `$queryRaw` tagged template only.
+- **NEVER** use `eval()` anywhere in backend code.
+
+---
+
+## 6. VERIFICATION & EXIT GATES
 
 ```bash
-cd 2_MAIN_CODING_FILES/backend
+# B1: TypeScript strict compilation
+cd 2_MAIN_CODING_FILES && npx tsc --noEmit --strict && echo "TSC:PASS"
 
-# 1. TypeScript strict compilation
-npx tsc --noEmit --strict
-echo "TSC backend: exit $?"
+# B2: No float money patterns
+grep -rn "parseFloat\|toFixed\|Math\.floor.*[Pp]rice\|0\.[0-9][0-9].*[Cc]ents" \
+  2_MAIN_CODING_FILES/backend/ \
+  | grep -v "test\|spec\|mathService" \
+  && echo "FAIL: float money found" || echo "B2:PASS"
 
-# 2. No raw SQL interpolation patterns
-grep -rn '\${\|`.*WHERE.*\+' routes/ controllers/ services/ \
-  && echo "FAIL: Raw SQL interpolation detected — CRITICAL security violation" \
-  || echo "PASS: No SQL interpolation detected"
+# B3: No eval()
+grep -rn '\beval(' 2_MAIN_CODING_FILES/backend/ | grep -v "//\|test" \
+  && echo "FAIL: eval() found" || echo "B3:PASS"
 
-# 3. No floating-point money operations (outside mathService)
-grep -rn "parseFloat\|toFixed\|\.99\|0\.0[0-9]" controllers/ routes/ \
-  | grep -v mathService \
-  | grep -v "// display only" \
-  && echo "WARN: Potential float math outside mathService — review each instance" \
-  || echo "PASS: No float money math outside mathService"
+# B4: All routes import Zod schema
+for f in 2_MAIN_CODING_FILES/backend/routes/*.ts; do
+  grep -q "Schema\|zod\|safeParse\|parse(" "$f" \
+    && echo "B4-PASS: $f has validation" \
+    || echo "B4-FAIL: $f has NO Zod validation"
+done
 
-# 4. Verify all routes have auth middleware
-grep -rn "router\.\(get\|post\|put\|delete\|patch\)" routes/ \
-  | grep -v "requireAuth\|\/health\|\/status" \
-  && echo "WARN: Routes without requireAuth detected — verify intentional" \
-  || echo "PASS: All routes have auth middleware"
-
-# 5. Run unit tests (must pass with ≥85% coverage)
-npx jest --coverage --coverageThreshold='{"global":{"lines":85}}'
-echo "Jest: exit $?"
+# B5: Jest coverage ≥85%
+cd 2_MAIN_CODING_FILES && npx jest --coverage \
+  --coverageThreshold='{"global":{"lines":85,"branches":85}}' \
+  --passWithNoTests=false && echo "B5:PASS"
 ```
 
 ---
 
-## 7. ERROR HANDLING & ESCALATION MATRIX
+## 7. ESCALATION MATRIX
 
 | Error | Severity | Action |
 |-------|----------|--------|
-| Raw SQL interpolation found | CRITICAL | Immediate surgical fix. Re-run SQL injection grep. Block deployment. |
-| Float math found for money | CRITICAL | Surgical fix: convert to integer cents via `toCents()`. |
-| Test coverage < 85% | HIGH | Add unit tests for uncovered service functions. Re-run Jest. |
-| Route missing auth middleware | HIGH | Surgical fix or confirm intentional (health endpoint). Document decision in agents.md. |
-| External API call without retry wrapper | MEDIUM | Wrap with `retryFetch`. Re-run tests. |
-| TypeScript error | HIGH | Fix inline. If type mismatch with API contract → update OpenAPI doc + regenerate types. |
+| Route missing Zod validation | CRITICAL | Do not mark task complete. Add validation before any other work continues. |
+| Financial write without SERIALIZABLE | CRITICAL | Wrap in `prisma.$transaction({ isolationLevel: 'Serializable' })`. Re-verify. |
+| Float money discovered post-build | CRITICAL | Dispatch ast_diff_reconciler for targeted fix. Re-run B2 gate. |
+| TSC errors | HIGH | Fix every error. Do not ship with TypeScript errors. |
+| Jest < 85% coverage | HIGH | Add targeted tests for uncovered branches. Show coverage report to Team Leader. |
+| PrismaClient per-request found | HIGH | Refactor to singleton. Connection pool exhaustion risk. |

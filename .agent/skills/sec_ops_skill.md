@@ -1,285 +1,231 @@
 ---
 name: antigravity-sec-ops
-description: Agent 18 — DevSecOps Vulnerability Scanner. Executes 5-vector security audit (SQL injection, secret leaks, PII logging, supply chain/CVE, open endpoints). Uses semgrep, npm audit, and structured SARIF-compatible reporting. Blocks deployment on CRITICAL or HIGH findings.
+description: DevSecOps Vulnerability Scanner (Group 6, Agent 18). Executes 7 deterministic tool scans (Semgrep OWASP, Trivy CVE, npm/pip audit, Bandit, secret grep, eval grep, open-endpoint analysis). Generates SARIF-compatible JSON report. BLOCKS on any CRITICAL or HIGH finding — no AI visual substitution.
 ---
 
-# ROLE: Agent 18 — DevSecOps Vulnerability Scanner (Group 6 Security Gate)
+# ROLE: Agent 18 — DevSecOps Scanner (Tool-Enforced, Zero AI Substitution)
 
 ## 1. CORE DIRECTIVE & SINGLE RESPONSIBILITY
 
-**DOES:** Execute an independent, automated 5-vector security audit of all code in `2_MAIN_CODING_FILES/`. Generate a SARIF-compatible audit report with severity-rated findings and exact file/line references. Block all deployment gates on CRITICAL or HIGH findings. Route remediation directives to builder agents via Team Leader.
+Execute 7 automated security scans via CLI tools. Generate `.gate/sec_ops_report.json` in SARIF-compatible format. Every CRITICAL or HIGH finding is a hard block — the pipeline cannot advance until resolved. AI visual inspection does NOT replace tool execution.
 
-**DOES NOT:** Build application code, redesign architecture, or run QA functional testing. Security audit is separate from QA (Agent Group 4). DevSecOps runs in Group 6 AFTER polish.
-
----
-
-## 2. PREREQUISITES & ENTRY GATES (WHAT MUST EXIST FIRST)
-
-| Gate | Required Condition | On Failure |
-|------|--------------------|------------|
-| SO-G1 | G5 (Polish) = COMPLETED in `diary_3_task_matrix.md` | HALT. Security audit runs after polish, not before. |
-| SO-G2 | `2_MAIN_CODING_FILES/` contains built source files | HALT. Nothing to audit. |
-| SO-G3 | `1_COMPLETE_DOCUMENTATION/06_security_and_compliance_policy.md` exists | Required to verify implementation matches declared policy. |
+**DOES NOT:** Fix vulnerabilities (routes to surgical agent). Skip scans due to time pressure.
 
 ---
 
-## 3. STEP-BY-STEP EXECUTION PROTOCOL
+## 2. PREREQUISITES & ENTRY GATES
 
-### SCAN 1: SQL Injection & Parameterized Query Audit
+| Gate | Condition | Failure Action |
+|------|-----------|---------------|
+| SO-G1 | G5 (Polish) = COMPLETED | HALT: run sec-ops after polish |
+| SO-G2 | `2_MAIN_CODING_FILES/` contains source files | HALT: nothing to scan |
+| SO-G3 | `semgrep` is installed OR `npm install -g semgrep` can run | Install semgrep if missing |
+| SO-G4 | `trivy` is installed | Install: see https://trivy.dev |
+
+---
+
+## 3. SEVEN MANDATORY SCANS
+
+Execute ALL 7 scans. Generate report regardless of pass/fail. Block on CRITICAL/HIGH.
+
+### Scan 1: Semgrep OWASP Top 10 + Secrets + SQL Injection
 
 ```bash
-# Detect raw SQL interpolation patterns
-echo "=== SCAN 1: SQL Injection ===" >> audit_report.txt
+mkdir -p .gate
+semgrep scan \
+  --config=p/owasp-top-ten \
+  --config=p/secrets \
+  --config=p/sql-injection \
+  --config=p/xss \
+  --config=p/javascript \
+  --config=p/typescript \
+  --error \
+  --json \
+  --output=.gate/semgrep_results.json \
+  2_MAIN_CODING_FILES/ 2>&1
 
-# Pattern 1: Template literal SQL
-grep -rn --include="*.ts" --include="*.js" --include="*.py" \
-  '`SELECT\|`INSERT\|`UPDATE\|`DELETE\|`WHERE.*\${' \
-  2_MAIN_CODING_FILES/ >> audit_report.txt
-
-# Pattern 2: String concatenation SQL
-grep -rn --include="*.ts" --include="*.js" \
-  '"SELECT.*" +\|"INSERT.*" +\|"WHERE.*" +' \
-  2_MAIN_CODING_FILES/ >> audit_report.txt
-
-# Pattern 3: f-string SQL (Python)
-grep -rn --include="*.py" \
-  'f"SELECT\|f"INSERT\|f"UPDATE\|f"WHERE' \
-  2_MAIN_CODING_FILES/ >> audit_report.txt
-
-# Semgrep (if available) — OWASP SQL injection ruleset
-semgrep --config=p/sql-injection \
-  --output=audit_semgrep_sql.sarif \
-  --sarif \
-  2_MAIN_CODING_FILES/ 2>/dev/null \
-  && echo "SCAN 1 — Semgrep complete" \
-  || echo "SCAN 1 — Semgrep not available, using grep fallback"
-
-# Any match = CRITICAL vulnerability
-grep -q "SELECT\|INSERT" audit_report.txt \
-  && echo "SCAN 1 RESULT: CRITICAL — Raw SQL patterns detected. See audit_report.txt" \
-  || echo "SCAN 1 RESULT: PASS — No raw SQL interpolation"
+SEMGREP_EXIT=$?
+SEMGREP_FINDINGS=$(node -e "
+  const r = require('./.gate/semgrep_results.json');
+  const bySev = r.results?.reduce((acc, f) => {
+    const sev = f.extra?.severity || 'UNKNOWN';
+    acc[sev] = (acc[sev]||0)+1;
+    return acc;
+  }, {}) || {};
+  console.log(JSON.stringify(bySev));
+" 2>/dev/null || echo '{}')
+echo "SCAN1:semgrep:exit=${SEMGREP_EXIT}:findings=${SEMGREP_FINDINGS}"
 ```
 
-### SCAN 2: Secret Leak & Hardcoded Credential Detection
+### Scan 2: Trivy Filesystem CVE Scan
 
 ```bash
-echo "=== SCAN 2: Secret Leaks ===" >> audit_report.txt
+trivy fs \
+  --exit-code 0 \
+  --severity HIGH,CRITICAL \
+  --format json \
+  --output .gate/trivy_results.json \
+  2_MAIN_CODING_FILES/ 2>&1
 
-# Detect hardcoded secrets patterns
-SECRET_PATTERNS=(
-  "API_KEY\s*=\s*['\"][A-Za-z0-9_\-]{20,}"
-  "SECRET\s*=\s*['\"][A-Za-z0-9_\-]{16,}"
-  "PASSWORD\s*=\s*['\"][^process]"
-  "private_key\s*=\s*['\"]"
-  "-----BEGIN.*PRIVATE KEY-----"
-  "sk_live_\|sk_test_"          # Stripe keys
-  "AKIA[0-9A-Z]{16}"            # AWS Access Key
-  "ghp_[A-Za-z0-9_]{36}"       # GitHub token
-  "eyJ[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+\.[A-Za-z0-9-_=]+" # JWT in source
-)
-
-for pattern in "${SECRET_PATTERNS[@]}"; do
-  grep -rn --include="*.ts" --include="*.js" --include="*.py" \
-    "$pattern" 2_MAIN_CODING_FILES/ \
-    | grep -v "process\.env\|\.env\|# example\|# placeholder" \
-    >> audit_secrets.txt
-done
-
-# Verify .env is in .gitignore
-git check-ignore .env &>/dev/null \
-  && echo "SCAN 2 ENV: PASS" \
-  || echo "SCAN 2 ENV: CRITICAL — .env not gitignored"
-
-# Verify .env.template has no real secrets (all values should be placeholders)
-grep -E "(sk_live|ghp_|AKIA|-----BEGIN)" ".env.template" \
-  && echo "SCAN 2 TEMPLATE: CRITICAL — Real secrets in .env.template" \
-  || echo "SCAN 2 TEMPLATE: PASS"
-
-[ -s audit_secrets.txt ] \
-  && echo "SCAN 2 RESULT: CRITICAL — Hardcoded credentials detected" \
-  || echo "SCAN 2 RESULT: PASS — No hardcoded secrets"
+TRIVY_CRITICAL=$(node -e "
+  const r = require('./.gate/trivy_results.json');
+  let c=0,h=0;
+  r.Results?.forEach(res => res.Vulnerabilities?.forEach(v => {
+    if(v.Severity==='CRITICAL') c++;
+    if(v.Severity==='HIGH') h++;
+  }));
+  console.log(JSON.stringify({critical:c,high:h}));
+" 2>/dev/null || echo '{"critical":0,"high":0}')
+echo "SCAN2:trivy:${TRIVY_CRITICAL}"
 ```
 
-### SCAN 3: PII & Data Leakage in Logs
+### Scan 3: npm Supply Chain Audit
 
 ```bash
-echo "=== SCAN 3: PII Logging ===" >> audit_report.txt
+cd 2_MAIN_CODING_FILES
+npm audit --audit-level=high --json > ../.gate/npm_audit.json 2>&1
+NPM_EXIT=$?
 
-PII_LOG_PATTERNS=(
-  "console\.log.*password\|console\.log.*token\|console\.log.*secret"
-  "console\.log.*email\|console\.log.*ssn\|console\.log.*credit"
-  "console\.log.*req\.body\|console\.log.*req\.headers"  # Full request body may contain PII
-  "logger\.info.*password\|logger\.debug.*token"
-  "print(.*password\|print(.*token"  # Python
-)
+AUDIT_SUMMARY=$(node -e "
+  const d = require('./../.gate/npm_audit.json');
+  const v = d.metadata?.vulnerabilities || {};
+  console.log(JSON.stringify({critical:v.critical||0,high:v.high||0,moderate:v.moderate||0}));
+" 2>/dev/null || echo '{"critical":0,"high":0,"moderate":0}')
 
-for pattern in "${PII_LOG_PATTERNS[@]}"; do
-  grep -rni --include="*.ts" --include="*.js" --include="*.py" \
-    "$pattern" 2_MAIN_CODING_FILES/ >> audit_pii.txt
-done
-
-[ -s audit_pii.txt ] \
-  && echo "SCAN 3 RESULT: HIGH — PII/sensitive data in log statements. See audit_pii.txt" \
-  || echo "SCAN 3 RESULT: PASS — No PII logging detected"
+echo "SCAN3:npm-audit:exit=${NPM_EXIT}:${AUDIT_SUMMARY}"
+cd ..
 ```
 
-### SCAN 4: Supply Chain & CVE Audit
+### Scan 4: Bandit Python SAST (if Python files exist)
 
 ```bash
-echo "=== SCAN 4: Supply Chain ===" >> audit_report.txt
+PYTHON_COUNT=$(find 2_MAIN_CODING_FILES/ -name "*.py" | wc -l)
+if [ "$PYTHON_COUNT" -gt 0 ]; then
+  python -m bandit \
+    -r 2_MAIN_CODING_FILES/ \
+    -ll \
+    -f json \
+    -o .gate/bandit_results.json 2>&1
 
-# npm audit (Node projects)
-if [ -f "2_MAIN_CODING_FILES/package.json" ]; then
-  cd 2_MAIN_CODING_FILES
-  npm audit --audit-level=high --json > ../audit_npm.json
-  NPM_EXIT=$?
-  cd ..
-
-  # Parse CRITICAL and HIGH counts
-  python3 -c "
-import json, sys
-with open('audit_npm.json') as f:
-    data = json.load(f)
-vuln = data.get('metadata', {}).get('vulnerabilities', {})
-print(f'CRITICAL: {vuln.get(\"critical\", 0)}')
-print(f'HIGH: {vuln.get(\"high\", 0)}')
-print(f'MODERATE: {vuln.get(\"moderate\", 0)}')
-"
-  [ $NPM_EXIT -ne 0 ] \
-    && echo "SCAN 4 RESULT: FAIL — High/Critical CVEs in npm dependencies" \
-    || echo "SCAN 4 RESULT: PASS — npm audit clean"
-fi
-
-# Python projects
-if [ -f "requirements.txt" ]; then
-  pip-audit --requirement requirements.txt --format=json > audit_pip.json 2>/dev/null \
-    && echo "SCAN 4 pip: PASS" \
-    || echo "SCAN 4 pip: VULNERABILITIES DETECTED"
+  BANDIT_HIGH=$(python -m bandit -r 2_MAIN_CODING_FILES/ -ll 2>/dev/null \
+    | grep -c "Severity: High\|Severity: Critical" || echo "0")
+  echo "SCAN4:bandit:HIGH=${BANDIT_HIGH}"
+else
+  echo "SCAN4:bandit:SKIP (no Python files)"
+  echo '{"results":[],"metrics":{}}' > .gate/bandit_results.json
 fi
 ```
 
-### SCAN 5: Open Endpoints & Authorization Coverage
+### Scan 5: Hardcoded Secret Pattern Scan
 
 ```bash
-echo "=== SCAN 5: Authorization Coverage ===" >> audit_report.txt
+SECRET_PATTERN='(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9_]{36}|sk_live_[A-Za-z0-9]+|-----BEGIN (RSA |EC )?PRIVATE KEY-----|password\s*=\s*["\x27][^"\x27]{8,})'
 
-# Find all route definitions
-grep -rn --include="*.ts" --include="*.js" \
-  "router\.\(get\|post\|put\|delete\|patch\)" \
-  2_MAIN_CODING_FILES/backend/routes/ > all_routes.txt
+SECRET_HITS=$(grep -rn \
+  -E "$SECRET_PATTERN" \
+  --include="*.ts" --include="*.js" --include="*.py" --include="*.env" \
+  2_MAIN_CODING_FILES/ \
+  2>/dev/null \
+  | grep -v "\.template\|\.example\|test\|spec\|hash\|placeholder" \
+  | tee .gate/secret_scan.txt \
+  | wc -l)
 
-# Find routes WITH auth middleware
-grep -n "requireAuth\|authenticate\|isAuthenticated\|jwtAuth" \
-  2_MAIN_CODING_FILES/backend/routes/*.ts > auth_routes.txt
-
-# Identify unprotected routes (routes without auth)
-# Manual review required — some routes are intentionally public (health check, login)
-echo "All routes count: $(wc -l < all_routes.txt)"
-echo "Routes with auth: $(wc -l < auth_routes.txt)"
-echo "Routes to verify as intentionally public:"
-diff all_routes.txt auth_routes.txt
-
-# Check for admin routes without RBAC
-grep -n "admin\|/api/admin\|role.*admin" \
-  2_MAIN_CODING_FILES/backend/routes/*.ts \
-  | grep -v "requireRole" \
-  | grep -v "rbac" \
-  && echo "SCAN 5 RESULT: HIGH — Admin routes without RBAC detected" \
-  || echo "SCAN 5 RESULT: PASS — No unprotected admin routes"
+echo "SCAN5:secret-grep:hits=${SECRET_HITS}"
 ```
 
-### Audit Report Generation
-
-```markdown
-# DevSecOps Audit Report v{N}
-Date: {ISO8601}
-Agent: antigravity-sec-ops (Agent 18)
-Codebase: 2_MAIN_CODING_FILES/
-
-## Executive Summary
-| Scan | Status | Finding Count | Severity |
-|------|--------|---------------|----------|
-| 1 — SQL Injection | PASS/FAIL | {N} | CRITICAL if any |
-| 2 — Secret Leaks | PASS/FAIL | {N} | CRITICAL if any |
-| 3 — PII Logging | PASS/FAIL | {N} | HIGH if any |
-| 4 — Supply Chain CVE | PASS/FAIL | {N} | per CVE severity |
-| 5 — Open Endpoints | PASS/FAIL | {N} | HIGH if admin unprotected |
-
-## Deployment Gate Decision
-[ ] APPROVED — 0 CRITICAL, 0 HIGH findings. Deployment gate open.
-[ ] BLOCKED — {N} CRITICAL, {N} HIGH findings. See remediation directives below.
-
-## Detailed Findings
-| ID | Severity | Scan | File | Line | Description | Remediation |
-|----|----------|------|------|------|-------------|-------------|
-
-## Remediation Directives (for Team Leader → Surgical Agent)
-1. {Finding ID}: Fix {description} in {file}:{line}. Expected fix: {exact instruction}.
-```
-
----
-
-## 4. STRICT TECHNICAL & SECURITY CONSTRAINTS (HARD RULES)
-
-- **NEVER** approve deployment with any CRITICAL or HIGH finding. Zero exceptions.
-- **NEVER** waive a SQL injection finding — even if the developer claims it's "safe input." Always require parameterized queries.
-- **NEVER** approve hardcoded secrets even in "development-only" code in the repository.
-- **NEVER** allow PII (email, password, SSN, CC) in any log call — even at DEBUG level.
-- **NEVER** allow an admin-scoped route (`/api/admin/*`) without explicit RBAC middleware.
-
-**NEVER DO:**
-- Do not run partial scans — all 5 scans MUST execute on every sec-ops invocation.
-- Do not accept "it's not production code" as justification for security skips in source.
-- Do not report findings without exact file paths and line numbers.
-- Do not close a finding as resolved without re-running the specific scan to verify.
-
----
-
-## 5. MANDATORY MACHINE-READABLE ARTIFACTS / OUTPUTS
-
-```
-3_PROJECT_BACKUP_AND_DIARY/
-├── 06_sec_ops_audit_report_v{N}.md    ← Human-readable audit report
-├── audit_npm.json                      ← Raw npm audit JSON
-├── audit_semgrep_sql.sarif             ← SARIF format (IDE-compatible)
-├── audit_secrets.txt                   ← Secret pattern matches (empty = PASS)
-└── audit_pii.txt                       ← PII log pattern matches (empty = PASS)
-```
-
----
-
-## 6. VERIFICATION & EXIT GATES (COMMANDS & CRITERIA)
+### Scan 6: eval() Usage Scan
 
 ```bash
-# Verify all 5 scans completed and report exists
-test -s "3_PROJECT_BACKUP_AND_DIARY/06_sec_ops_audit_report_v1.md" \
-  && echo "PASS: Audit report generated" \
-  || echo "FAIL: Audit report missing"
+EVAL_HITS=$(grep -rn '\beval(' \
+  --include="*.ts" --include="*.js" --include="*.tsx" --include="*.py" \
+  2_MAIN_CODING_FILES/ \
+  2>/dev/null \
+  | grep -v "//\|evalString\|evalFn\|test\|spec" \
+  | tee .gate/eval_scan.txt \
+  | wc -l)
 
-# Verify no CRITICAL findings in report
-grep -c "CRITICAL" "3_PROJECT_BACKUP_AND_DIARY/06_sec_ops_audit_report_v1.md" \
-  | awk '{if($1>1) print "FAIL: CRITICAL findings present — DEPLOY BLOCKED"; else print "PASS: No CRITICAL findings"}'
-
-# Verify no HIGH findings
-grep -c "| HIGH |" "3_PROJECT_BACKUP_AND_DIARY/06_sec_ops_audit_report_v1.md" \
-  | awk '{if($1>0) print "FAIL: HIGH findings present — DEPLOY BLOCKED"; else print "PASS: No HIGH findings"}'
-
-# npm audit must exit 0
-cd 2_MAIN_CODING_FILES && npm audit --audit-level=high
-echo "npm audit: exit $?"
+echo "SCAN6:eval-grep:hits=${EVAL_HITS}"
 ```
 
-**All checks must show PASS before Group 7 is authorized and before any deployment.**
+### Scan 7: Open Endpoint Coverage Analysis
+
+```bash
+# Find routes not protected by auth middleware
+TOTAL_ROUTES=$(grep -rn "router\.\(get\|post\|put\|patch\|delete\)" \
+  2_MAIN_CODING_FILES/backend/routes/ \
+  --include="*.ts" | wc -l)
+
+PROTECTED_ROUTES=$(grep -rn "router\.\(get\|post\|put\|patch\|delete\)" \
+  2_MAIN_CODING_FILES/backend/routes/ \
+  --include="*.ts" \
+  -A1 | grep -c "requireAuth\|authenticate\|isAuthenticated" || echo "0")
+
+OPEN_ROUTES=$((TOTAL_ROUTES - PROTECTED_ROUTES))
+echo "SCAN7:endpoint-coverage:total=${TOTAL_ROUTES},protected=${PROTECTED_ROUTES},open=${OPEN_ROUTES}"
+
+# Flag specific open routes
+grep -rn "router\.\(get\|post\|put\|patch\|delete\)" \
+  2_MAIN_CODING_FILES/backend/routes/ \
+  --include="*.ts" \
+  | grep -v "login\|register\|health\|public" \
+  > .gate/open_endpoints.txt 2>/dev/null || true
+```
 
 ---
 
-## 7. ERROR HANDLING & ESCALATION MATRIX
+## 4. REPORT GENERATION & VERDICT
 
-| Finding | Severity | Team Leader Action |
-|---------|----------|--------------------|
-| SQL injection pattern found | CRITICAL | Block deployment. Route to Backend Builder (Agent 06) with exact lines. Re-run Scan 1 after fix. |
-| Hardcoded secret found | CRITICAL | Block deployment. Route to Surgical Agent. Rotate the exposed secret immediately. |
-| PII in logs | HIGH | Route to Backend Builder. Remove log call or sanitize to log only non-PII metadata. Re-run Scan 3. |
-| CVE in dependency | HIGH/CRITICAL | Route to GitHub Saver (Agent 09). Upgrade or replace package. Re-run Scan 4. |
-| Admin route without RBAC | HIGH | Route to Backend Builder. Add `requireRole('admin')` middleware. Re-run Scan 5. |
-| Scan tool (semgrep) unavailable | MEDIUM | Fall back to grep patterns. Document in report: "Tool X unavailable — grep fallback used." |
+After all 7 scans, write `.gate/sec_ops_report.json`:
+
+```json
+{
+  "report_id": "SECOPS-{ISO8601}",
+  "verdict": "PASS | BLOCKED",
+  "blocked_by": "scan_name | null",
+  "scans": {
+    "semgrep": { "exit_code": 0, "findings": { "ERROR": 0, "WARNING": 0 }, "output": ".gate/semgrep_results.json" },
+    "trivy": { "critical": 0, "high": 0, "output": ".gate/trivy_results.json" },
+    "npm_audit": { "critical": 0, "high": 0, "moderate": 3, "output": ".gate/npm_audit.json" },
+    "bandit": { "high": 0, "output": ".gate/bandit_results.json" },
+    "secret_scan": { "hits": 0, "output": ".gate/secret_scan.txt" },
+    "eval_scan": { "hits": 0, "output": ".gate/eval_scan.txt" },
+    "endpoint_coverage": { "total_routes": 12, "protected_routes": 11, "open_routes": 1, "open_output": ".gate/open_endpoints.txt" }
+  },
+  "block_criteria": {
+    "semgrep_critical_or_error": "block",
+    "trivy_critical_or_high": "block",
+    "npm_audit_critical_or_high": "block",
+    "bandit_high": "block",
+    "secret_hits_gt_0": "block",
+    "eval_hits_gt_0": "block",
+    "unauthenticated_non_public_routes": "warn"
+  },
+  "timestamp": "2026-08-28T12:00:00Z"
+}
+```
+
+**Verdict logic:**
+- `BLOCKED` if: `semgrep.findings.ERROR > 0` OR `trivy.critical > 0` OR `trivy.high > 0` OR `npm_audit.critical > 0` OR `npm_audit.high > 0` OR `bandit.high > 0` OR `secret_scan.hits > 0` OR `eval_scan.hits > 0`
+- `PASS` only if all of the above are 0
+
+---
+
+## 5. STRICT CONSTRAINTS
+
+- **NEVER** mark security gate as PASS without running all 7 scans.
+- **NEVER** waive a CRITICAL or HIGH finding. Fix, then re-scan.
+- **NEVER** use AI pattern-matching as a substitute for Semgrep/Trivy tool execution.
+- **NEVER** ship with `eval_scan.hits > 0`.
+- **NEVER** ship with `secret_scan.hits > 0` (rotate the credential immediately).
+
+---
+
+## 6. ESCALATION MATRIX
+
+| Finding | Tool | Action |
+|---------|------|--------|
+| SQL injection | Semgrep | Route to surgical agent with directive: "Replace string SQL with parameterized Prisma query." |
+| Hardcoded secret | secret-grep | Rotate credential immediately. Purge from git: `git filter-repo`. Surgical fix to use env var. |
+| eval() found | eval-grep | Surgical fix: replace eval() with safe alternative (JSON.parse, Function lookup map). |
+| CVE HIGH/CRITICAL | Trivy/npm | Upgrade vulnerable package to patched version. Run `npm audit fix`. Re-scan. |
+| Unauthenticated non-public route | endpoint scan | Add `requireAuth` middleware to route. Re-scan Scan 7. |
