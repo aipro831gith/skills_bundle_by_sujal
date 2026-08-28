@@ -1,132 +1,257 @@
-# Antigravity 2.0 Enterprise Ecosystem (`skills_bundle_by_sujal`)
-# Official GitHub Repository: https://github.com/aipro831gith/skills_bundle_by_sujal
+# 🚀 Skills Bundle by Sujal
+### Enterprise AI Agent Skills — Built for Google Antigravity 2.0
 
-Welcome to the **Antigravity 2.0 Enterprise Ecosystem** — a 3-Tier, 8-Group Autonomous Multi-Agent Software Development Corporation created by Sujal.
+![Platform](https://img.shields.io/badge/Platform-Google%20Antigravity%202.0-blue)
+![IDE](https://img.shields.io/badge/IDE-Antigravity%20IDE%20(VS%20Code%20fork)-blueviolet)
+![Skills](https://img.shields.io/badge/Skills-25%20Canonical-green)
+![Security](https://img.shields.io/badge/Auth-Argon2id%20%2B%20RS256%20JWT-red)
+![Coverage](https://img.shields.io/badge/Test%20Coverage-%E2%89%A585%25-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-lightgrey)
 
 ---
 
-## 📂 Complete Workspace Structure
+## What This Repository Is
+
+A complete, enterprise-grade collection of **AI agent skills** for Google Antigravity — rewritten from the ground up to production standards. Each skill is a deterministic, test-gated, zero-ambiguity instruction set that tells Antigravity sub-agents exactly what to do, how to verify it worked, and what to do if it fails.
+
+**Think of it as a recipe book** — but instead of cooking instructions, it's step-by-step playbooks for building full-stack software products using an AI team that you direct in plain English.
+
+---
+
+## Repository Structure
 
 ```
 skills_bundle_by_sujal/
-├── README.md                                 # Complete Ecosystem Manual & Documentation
-├── AGENTS.md                                 # Master Index mapping to all @agents/
-├── .gemini                                   # Root Configuration, Universal Versioning & Rules
 │
-├── .agent/
-│   └── skills/                               # 28 Modular & Granular Executable Skill Files
-│       ├── architecture_skill.md
-│       ├── auditor_skill.md
-│       ├── backend_builder_skill.md
-│       ├── build_backend.md
-│       ├── build_frontend.md
-│       ├── build_skill.md
-│       ├── database_builder_skill.md
-│       ├── deploy_skill.md                   # Group 8: Master Deploy Orchestrator
-│       ├── document_skill.md
-│       ├── documentarian_architect_skill.md
-│       ├── frontend_builder_skill.md
-│       ├── github_deploy_skill.md            # Group 8: GitHub Releases & CI/CD
-│       ├── github_saver_skill.md
-│       ├── hardware_compliance_skill.md      # Group 6: 10-Step Disaster-Proof Hardware Safety
-│       ├── memory_keeper_skill.md
-│       ├── memory_skill.md
-│       ├── playstore_deploy_skill.md         # Group 8: Google Play Store Automated Forms
-│       ├── polish_skill.md
-│       ├── qa_skill.md
-│       ├── research_skill.md
-│       ├── sec_ops_skill.md
-│       ├── security_guard_skill.md
-│       ├── spec_skill.md
-│       ├── start_skill.md
-│       ├── surgical_skill.md
-│       ├── team_leader_skill.md
-│       ├── user_manual_writer_skill.md
-│       └── web_deploy_skill.md               # Group 8: Web & Cloud Hosting
+├── AGENTS.md                        ← Master agent swarm registry (YOU ARE HERE)
+├── README.md                        ← This file
+├── .agents/
+│   ├── mcp_config.json              ← MCP server connections (database, GitHub, security)
+│   └── hooks.json                   ← Lifecycle automation (pre-commit gates, post-save linting)
 │
-└── agents/                                   # 27 Agent Persona Files (with @.agent/skills/ links)
-    ├── appstore_deploy_agent.md              # Group 8: Apple App Store Specialist
-    ├── architecture_agent.md                 # Group 2: Consolidated City Planner & Governance
-    ├── auditor_agent.md                      # Group 6: Pre-Built Recovery Auditor
-    ├── backend_builder.md                    # Group 3: Backend API & Parameterized DB Builder
-    ├── builder_agent.md                      # Group 3: Master Construction Orchestrator
-    ├── database_builder.md                   # Group 3: Database Storage Architect
-    ├── deploy_agent.md                       # Group 8: Master Deployment Orchestrator
-    ├── document_agent.md                     # Group 2: Documentation Master Orchestrator
-    ├── documentarian.md                      # Group 2: Compulsory Documentarian Architect
-    ├── frontend_builder.md                   # Group 3 & 5: Front-End UI/UX Builder
-    ├── github_deploy_agent.md                # Group 8: GitHub Release & CI/CD Specialist
-    ├── github_saver.md                       # Group 3: Version Control & Dependency Defender
-    ├── hardware_compliance.md                # Group 6: Disaster-Proof Hardware Safety Specialist
-    ├── memory_agent.md                       # Group 7: Memory Master Orchestrator
-    ├── memory_keeper.md                      # Group 7: Memory Keeper & Scheduled Pruning
-    ├── playstore_deploy_agent.md             # Group 8: Google Play Store Specialist
-    ├── polish_agent.md                       # Group 5: UI/UX Visual Polisher
-    ├── qa_agent.md                           # Group 4 & 5: Consolidated QA & Testing
-    ├── research_agent.md                     # Group 1: Market & API Researcher
-    ├── sec_ops_agent.md                      # Group 6: DevSecOps Vulnerability Scanner
-    ├── security_guard.md                     # Group 3: Zero-Trust Security Specialist
-    ├── spec_agent.md                         # Group 1 & 7: Master Spec Writer
-    ├── start_agent.md                        # Group 1 & 8: Tier 1 User Guidance AI
-    ├── surgical_agent.md                     # Group 4, 5, 6: Precision Surgeon
-    ├── team_leader.md                        # Tier 2: Engineering Manager & Orchestrator
-    ├── user_manual_writer.md                 # Group 7: End-User Manual Documentarian
-    └── web_deploy_agent.md                   # Group 8: Web & Cloud Hosting Specialist
+└── .agent/skills/                   ← 25 canonical skill files
+    ├── start_skill.md               ← /start — Project initialization
+    ├── team_leader_skill.md         ← Tier 2 orchestrator (8-Group pipeline)
+    ├── research_skill.md            ← /research — Market & API research
+    ├── spec_skill.md                ← /spec — Master specification writer
+    ├── architecture_skill.md        ← /architecture — System architect
+    ├── document_skill.md            ← /document — 7 compulsory documents
+    ├── build_skill.md               ← /build-all — Parallel 5-worker dispatcher
+    ├── frontend_builder_skill.md    ← Agent 05: UI/UX builder
+    ├── backend_builder_skill.md     ← Agent 06: API + math engine
+    ├── database_builder_skill.md    ← Agent 07: Prisma + migrations
+    ├── security_guard_skill.md      ← Agent 08: Argon2id + RS256 + RBAC
+    ├── github_saver_skill.md        ← Agent 09: gitignore + dependency audit
+    ├── qa_skill.md                  ← /qa-test — 3-Pillar QA
+    ├── surgical_skill.md            ← /surgical — Precision bug fixer
+    ├── polish_skill.md              ← /polish — WCAG 2.1 AA visual polish
+    ├── sec_ops_skill.md             ← /sec-ops — 5-vector security scan
+    ├── auditor_skill.md             ← /audit — Pre-built codebase recovery
+    ├── hardware_compliance_skill.md ← /hardware-compliance — MISRA C + Blast Radius
+    ├── memory_skill.md              ← /context-save — Context snapshot + Cron
+    ├── user_manual_writer_skill.md  ← Plain-English user manual generator
+    ├── deploy_skill.md              ← /deploy — Master deployment orchestrator
+    ├── web_deploy_skill.md          ← Vercel / Railway / Cloud Run
+    ├── playstore_deploy_skill.md    ← Google Play Store (AAB + keystore)
+    ├── appstore_deploy_skill.md     ← Apple App Store (IPA + TestFlight)
+    └── github_deploy_skill.md       ← GitHub Actions CI/CD pipeline
 ```
 
 ---
 
-## ⌨️ Master Hybrid Command System
+## Quick Start
 
-### Macro Group Commands
-| Macro Command | Target Group | Execution Description |
-| :--- | :--- | :--- |
-| **`/start`** | **System Initialization** | Warm Namaste greeting, sets up 3 folders and 3 diaries, starts project intake. |
-| **`/group-1`** or **`/discover`** | **Group 1: Discovery** | Market research and drafts `master_spec_v1.md`. (Pauses for Boss review). |
-| **`/group-2`** or **`/plan`** | **Group 2: Blueprint** | Generates 3-step city map and ALL 7 Compulsory Documents. (Pauses for Boss review). |
-| **`/group-3`** or **`/build`** | **Group 3: Factory Floor** | Concurrently codes Frontend, Backend, Database, Security, and Git versioning. |
-| **`/group-4`** or **`/qa`** | **Group 4: QA & Fix** | Runs Syntax, Math, and Human click tests, then applies precision surgical fixes. |
-| **`/group-5`** or **`/refine`** | **Group 5: Polish Loop** | Refines hover states, animations, and mobile responsiveness (Max 2 loops). |
-| **`/group-6`** or **`/audit-all`** | **Group 6: Compliance** | Audits against 7 docs, DevSecOps vulnerabilities, and 10-step Hardware Safety. |
-| **`/group-7`** or **`/archive`** | **Group 7: Documentation** | Generates `USER_MANUAL.md` and runs nightly context memory pruning (Cron). |
-| **`/group-8`** or **`/launch`** | **Group 8: Release (MANUAL ONLY)** | Prepares web deployment, Play Store / App Store release, APK builds, and human Q&A. |
-| **`/end`** | **System Shutdown** | Final project check, confirms all diaries are saved, safely closes session. |
+### Option A: Antigravity 2.0 (Desktop App)
 
----
+1. Open **Antigravity 2.0**.
+2. Click **Projects** in the left sidebar → **Open Folder** → select this repository root.
+3. Start a new conversation in the Chat Canvas.
+4. Type `/start` and describe your product idea in plain English.
 
-### Micro Specialist Commands
-| Micro Command | Hyphenated Agent Deployed | Primary Output / Action |
-| :--- | :--- | :--- |
-| **`/research`** | - `research_agent.md` | Conducts live web search for market competitors, APIs, and protocols. |
-| **`/spec`** | - `spec_agent.md` | Drafts or updates `master_spec_v1.md` (or `master_spec_v2.md`). |
-| **`/architecture`** | - `architecture_agent.md` | Maps 3-step city architecture and root `agents.md`/`tasks.md`. |
-| **`/document`** | - `documentarian.md` | Generates all 7 Compulsory Documents in `1_COMPLETE_DOCUMENTATION/`. |
-| **`/build-all`** | - `builder_agent.md` | Spawns parallel builders (UI, Backend, Database, Security, Git). |
-| **`/qa-test`** | - `qa_agent.md` | Runs 3-pillar testing (Syntax, Math calculations, Human click flows). |
-| **`/surgical`** | - `surgical_agent.md` | Backs up target file to folder 3, then executes precision line edit. |
-| **`/polish`** | - `polish_agent.md` | Conducts visual aesthetic sweep for animations, hover states, and padding. |
-| **`/audit`** | - `auditor_agent.md` | Reverse-engineers and rescues legacy or broken codebases. |
-| **`/sec-ops`** | - `sec_ops_agent.md` | Scans for SQL injections, secret leaks, PII exposures, and open endpoints. |
-| **`/hardware-compliance`** | - `hardware_compliance.md`| Enforces 10-Step Virtual Check, physical wiring guide, and Disaster Blast Radius. |
-| **`/manual`** | - `user_manual_writer.md` | Auto-generates plain-English `USER_MANUAL.md` for end-users. |
-| **`/context-save`** | - `memory_keeper.md` | Saves complete workspace memory snapshot to folder 3. |
-| **`/context-load`** | - `memory_keeper.md` | Restores previous session memory from snapshot. |
-| **`/deploy-web`** | - `web_deploy_agent.md` | Deploys website to Vercel / GitHub Pages / Staging Cloud Server. |
-| **`/deploy-playstore`** | - `playstore_deploy_agent.md` | Automated Google Play Console browser form-filling and APK/AAB builds. |
-| **`/deploy-appstore`** | - `appstore_deploy_agent.md` | Prepares Apple App Store build, certificates, and compliance checklist. |
-| **`/deploy-github`** | - `github_deploy_agent.md` | Generates semantic release tags, branch protection, and CI/CD actions. |
-| **`/deploy-all`** | - `deploy_agent.md` | Runs full multi-platform release suite with cause-and-effect caution analysis. |
+The agent will guide you through the 8-Group pipeline automatically.
+
+### Option B: Antigravity IDE (VS Code Fork)
+
+1. Open the repository folder in **Antigravity IDE**.
+2. The IDE automatically discovers `.agents/` at the project root and loads all customizations.
+3. Open the Sidebar Chat panel.
+4. Type `/start` to begin.
+
+### Option C: Antigravity CLI (`agy`)
+
+```bash
+# Navigate to the repository
+cd /path/to/skills_bundle_by_sujal
+
+# Launch the CLI (automatically discovers .agents/ from CWD)
+agy
+
+# Inside the CLI:
+/start
+```
 
 ---
 
-## 🔒 Universal Immutable Versioning Ladder
-* **Zero Overwrites:** All updates increment sequentially: `v1` -> `v2` -> `v3` -> `v4`.
-* **In-Place Edit Lock:** AI agents are forbidden from editing files in place unless the user explicitly writes:  
-  `"edit this document, do not create any other version of this document"`.
+## The 8-Group Conveyor Belt
+
+Your product is built in a deterministic 8-phase pipeline:
+
+```
+G1: Research & Spec  →  G2: Blueprint & Docs  →  G3: Build (5 workers)
+       ↓ HARD STOP                ↓ HARD STOP
+   Boss approval              Boss approval
+
+G4: QA Testing  →  G5: Polish (max 2×)  →  G6: Security Audit
+G7: User Manual  →  G8: DEPLOY (manual only — always Boss confirmation)
+```
+
+**Two Hard Stops** require your explicit approval before the pipeline continues:
+1. After G1: Review the master specification
+2. After G2: Review all 7 blueprint documents
+
+**Group 8 (Deploy) is always manual** — the AI never auto-deploys.
 
 ---
 
-## 🚀 Quick Start
-1. Copy `.gemini` to your project root or user home directory.
-2. Place `AGENTS.md`, `agents/`, and `.agent/skills/` in your workspace root.
-3. Open your terminal or AI interface and type `/start`. Welcome to your Enterprise Software Corporation!
+## Master Slash Command Directory
+
+Type `/` in the chat to see all available commands.
+
+| Command | Group | What It Does |
+|---------|-------|-------------|
+| `/start` | Setup | Initialize project, set up workspace, brief Team Leader |
+| `/end` | Setup | Graceful project shutdown with final summary |
+| `/research` | G1 | Run market research, competitor analysis, CVE dependency scan |
+| `/spec` | G1 | Generate master specification with 6 mandatory sections |
+| `/architecture` | G2 | Generate system architecture, agents.md, tasks.md |
+| `/document` | G2 | Generate all 7 compulsory blueprint documents |
+| `/build-all` | G3 | Dispatch 5 concurrent builders (frontend/backend/DB/security/git) |
+| `/qa-test` | G4 | Run 3-Pillar QA (compiler + math verification + click-flow) |
+| `/polish` | G5 | 7-dimension WCAG 2.1 AA visual enhancement sweep |
+| `/surgical` | G4/5/6 | Precision line-level fix with pre-edit backup |
+| `/sec-ops` | G6 | 5-vector security scan (SQL injection, secrets, PII logs, CVE, endpoints) |
+| `/audit` | G6 | 4-angle pre-built codebase recovery audit |
+| `/hardware-compliance` | G6 | Hardware safety (MISRA C sim, datasheet research, Blast Radius) |
+| `/context-save` | G7 | Compress project state to context_snapshot.md |
+| `/context-load` | G7 | Restore project context from saved snapshot |
+| `/deploy` | G8 | Production deployment orchestrator (manual only) |
+
+---
+
+## Master Context Mentions Directory
+
+Type `@` in the chat to attach context to your message:
+
+| Mention | What It Attaches |
+|---------|-----------------|
+| `@file` / `@folder` | A specific file or entire folder as context |
+| `@git` | Current git status, diff, recent commits |
+| `@terminal` | Output from an active terminal session |
+| `@mcp` | Tools from a connected MCP server |
+| `@agent` | A previous or running sub-agent conversation |
+| `@docs` | Loaded project documentation (skill descriptions) |
+| `@problems` | Current compiler errors / lint warnings from the Problems pane |
+
+**Production examples:**
+```
+"Fix the TypeScript error in @file:backend/controllers/invoiceController.ts"
+"What was the last command output? @terminal"
+"Run the QA suite — errors are at @problems"
+"Search for the Prisma docs @mcp:sequential-thinking"
+```
+
+---
+
+## Keyboard Shortcut Cheat Sheet
+
+### Antigravity IDE (VS Code Fork)
+
+| Action | Windows / Linux | macOS |
+|--------|----------------|-------|
+| Open Sidebar Chat | `Ctrl+Shift+A` | `⌘+Shift+A` |
+| Inline AI Edit | `Ctrl+I` | `⌘+I` |
+| Accept Autocomplete | `Tab` | `Tab` |
+| Reject Autocomplete | `Esc` | `Esc` |
+| Accept Word-by-Word | `Ctrl+→` | `⌘+→` |
+| Jump to Next Suggestion | `Tab` (after accept) | `Tab` (after accept) |
+| Trigger Diagnostic Auto-Fix | Click error underline → lightbulb | Click error underline → lightbulb |
+| Apply Diff Suggestion | `Ctrl+Enter` in diff view | `⌘+Enter` in diff view |
+| Reject Diff Suggestion | `Ctrl+Backspace` in diff view | `⌘+Backspace` in diff view |
+| Open Command Palette | `Ctrl+Shift+P` | `⌘+Shift+P` |
+
+### Antigravity 2.0 (Desktop App)
+
+| Action | All Platforms |
+|--------|--------------|
+| New Conversation | Click **New Conversation** in left sidebar |
+| Open Slash Commands | Type `/` in chat input |
+| Open Context Mentions | Type `@` in chat input |
+| Attach file/image | Drag-and-drop into chat canvas |
+| View Running Sub-Agents | Click **Subagents** in auxiliary pane |
+| View Background Tasks | Click **Background Tasks** in auxiliary pane |
+| View Artifacts | Click **Artifacts** in auxiliary pane |
+
+---
+
+## Environment Variable Setup
+
+Copy `.env.template` to `.env` and fill in real values:
+
+```bash
+cp .env.template .env
+```
+
+Required variables (names only — never commit real values):
+
+| Variable | Used By | Description |
+|----------|---------|-------------|
+| `DATABASE_URL` | Database Builder, Backend Builder | PostgreSQL connection string |
+| `JWT_PRIVATE_KEY` | Security Guard | RSA-2048 private key (PEM format) |
+| `JWT_PUBLIC_KEY` | Security Guard | RSA-2048 public key (PEM format) |
+| `CORS_ALLOWED_ORIGINS` | Security Guard | Comma-separated allowed origins |
+| `POSTGRES_ANALYTICS_URL` | MCP: postgres-analytics | Analytics DB connection string |
+| `GITHUB_PERSONAL_ACCESS_TOKEN` | MCP: github-enterprise | GitHub PAT with repo scope |
+| `BRAVE_API_KEY` | MCP: brave-search | Brave Search API key |
+| `SEMGREP_APP_TOKEN` | MCP: sast-security-scanner | Semgrep Cloud token (optional) |
+
+---
+
+## Security Standards (Non-Negotiable)
+
+| Requirement | Standard | Forbidden Alternative |
+|------------|---------|----------------------|
+| Password hashing | Argon2id (m=65536, t=3, p=4) | MD5, SHA-*, bcrypt <12 rounds |
+| JWT algorithm | RS256 | HS256 |
+| Session storage | HttpOnly + SameSite=Strict cookie | localStorage |
+| SQL queries | Parameterized bindings | String interpolation |
+| Money storage | Integer cents (1099 = \$10.99) | Float/Decimal |
+| CORS | Explicit whitelist | `origin: '*'` in production |
+
+---
+
+## MCP Servers Included
+
+| Server | Transport | Policy | Purpose |
+|--------|-----------|--------|---------|
+| `filesystem-workspace` | stdio | always-proceed | File read/write |
+| `postgres-analytics` | stdio | request-review | Database queries |
+| `github-enterprise` | stdio | request-review | Repo management |
+| `docker-sandbox` | stdio | proceed-in-sandbox | Isolated builds |
+| `sast-security-scanner` | stdio | always-proceed | Semgrep SAST |
+| `sequential-thinking` | stdio | always-proceed | Structured reasoning |
+| `brave-search` | stdio | always-proceed | Web research |
+
+---
+
+## Contributing
+
+1. All skill files must follow the 7-section template in `architecture_skill.md`.
+2. Every skill must include a `NEVER DO:` list and escalation matrix.
+3. Run the pre-commit hooks before pushing (they run automatically via `hooks.json`).
+4. New skills must be registered in `AGENTS.md` before they can be used.
+
+---
+
+## Confidence & Accuracy Note
+
+This repository uses only verified Antigravity platform features as documented at `https://antigravity.google/docs`. Features marked with `[illustrative]` in skill files are best-effort examples, not officially documented behavior. Always check the official docs for the latest capabilities.

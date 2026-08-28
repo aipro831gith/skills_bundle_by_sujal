@@ -1,0 +1,94 @@
+{
+  "_comment": "Lifecycle Hooks for Skills Bundle by Sujal — Google Antigravity 2.0",
+  "_doc": "Place at .agents/hooks.json. Hooks run deterministic shell commands at agent lifecycle events.",
+  "_reference": "https://antigravity.google/docs/hooks",
+
+  "hooks": [
+
+    {
+      "name": "pre-tool:typescript-check",
+      "_comment": "Run TypeScript type-check before any file write tool to catch type regressions early.",
+      "event": "pre_tool",
+      "toolFilter": ["write_to_file", "replace_file_content"],
+      "fileFilter": ["**/*.ts", "**/*.tsx"],
+      "command": "npx tsc --noEmit --strict 2>&1 | head -30",
+      "workingDirectory": "${workspaceRoot}/2_MAIN_CODING_FILES",
+      "onFailure": "warn",
+      "_onFailureNote": "Set to 'warn' not 'block' — TypeScript errors will be shown but not block the write. Agent should fix errors after write."
+    },
+
+    {
+      "name": "post-tool:eslint-fix",
+      "_comment": "Run ESLint auto-fix after any TypeScript/JavaScript file is written.",
+      "event": "post_tool",
+      "toolFilter": ["write_to_file", "replace_file_content"],
+      "fileFilter": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+      "command": "npx eslint --fix ${changedFile} 2>&1",
+      "workingDirectory": "${workspaceRoot}/2_MAIN_CODING_FILES",
+      "onFailure": "warn"
+    },
+
+    {
+      "name": "pre-commit:full-quality-gate",
+      "_comment": "Deterministic pre-commit gate: TypeScript + ESLint + Jest + npm audit. All must pass.",
+      "event": "pre_commit",
+      "command": "echo '=== Pre-Commit Quality Gate ===' && npx tsc --noEmit --strict && echo 'TSC: PASS' && npx eslint . --ext .ts,.tsx --max-warnings 0 && echo 'ESLint: PASS' && npm audit --audit-level=high && echo 'npm audit: PASS' && npx jest --coverage --coverageThreshold='{\"global\":{\"lines\":85}}' --passWithNoTests && echo 'Jest: PASS' && echo '=== ALL GATES PASSED ==='",
+      "workingDirectory": "${workspaceRoot}/2_MAIN_CODING_FILES",
+      "onFailure": "block",
+      "_onFailureNote": "Pre-commit gate is BLOCKING. Commit is refused if any gate fails. Fix errors and re-attempt commit."
+    },
+
+    {
+      "name": "pre-commit:secret-scan",
+      "_comment": "Scan for accidentally staged secrets before every commit.",
+      "event": "pre_commit",
+      "command": "git diff --cached --name-only | xargs grep -l -E '(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9_]{36}|sk_live_|-----BEGIN.*PRIVATE KEY-----)' 2>/dev/null && echo 'FAIL: Potential secrets staged' && exit 1 || echo 'Secret scan: PASS'",
+      "workingDirectory": "${workspaceRoot}",
+      "onFailure": "block"
+    },
+
+    {
+      "name": "pre-commit:env-not-staged",
+      "_comment": "Block commit if .env or credential files are staged.",
+      "event": "pre_commit",
+      "command": "git diff --cached --name-only | grep -E '^\\.env$|^\\.env\\.' | grep -v '\\.template' && echo 'FAIL: .env file staged — remove with: git reset HEAD .env' && exit 1 || echo 'Env check: PASS'",
+      "workingDirectory": "${workspaceRoot}",
+      "onFailure": "block"
+    },
+
+    {
+      "name": "post-build:prisma-validate",
+      "_comment": "Validate Prisma schema after any database file changes.",
+      "event": "post_tool",
+      "toolFilter": ["write_to_file", "replace_file_content"],
+      "fileFilter": ["**/schema.prisma", "**/migrations/**/*.sql"],
+      "command": "npx prisma validate && echo 'Prisma schema: PASS' || echo 'Prisma schema: FAIL'",
+      "workingDirectory": "${workspaceRoot}/2_MAIN_CODING_FILES/database",
+      "onFailure": "warn"
+    },
+
+    {
+      "name": "post-save:diary-format-check",
+      "_comment": "Verify diary files follow the pipe-separated table format expected by Team Leader.",
+      "event": "post_tool",
+      "toolFilter": ["write_to_file", "replace_file_content"],
+      "fileFilter": ["**/diary_*.md"],
+      "command": "echo 'Diary file updated:' ${changedFile} && wc -l ${changedFile} | awk '{print \"Lines: \" $1}'",
+      "workingDirectory": "${workspaceRoot}",
+      "onFailure": "warn"
+    },
+
+    {
+      "name": "pre-deploy:full-audit-gate",
+      "_comment": "Comprehensive pre-deployment verification. Runs when /deploy is invoked.",
+      "event": "pre_tool",
+      "toolFilter": ["run_command"],
+      "commandFilter": ["vercel", "railway", "gcloud run deploy", "fly deploy"],
+      "command": "echo '=== DEPLOYMENT GATE ===' && npx tsc --noEmit --strict && npm audit --audit-level=high && npx jest --passWithNoTests && git check-ignore .env && test -s USER_MANUAL.md && echo '=== DEPLOYMENT AUTHORIZED ==='",
+      "workingDirectory": "${workspaceRoot}",
+      "onFailure": "block",
+      "_onFailureNote": "Deployment is BLOCKED until all gates pass. Fix failing gate then retry /deploy."
+    }
+
+  ]
+}

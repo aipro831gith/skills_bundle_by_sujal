@@ -1,191 +1,260 @@
-# Master Agents Index (AGENTS.md) — Enterprise Edition v2.0
-# Refactored to zero-ambiguity, 7-section production standards
-# Deduplication applied: 4 redundant files retired (see Consolidation Log below)
+# AGENTS.md — Master Agent Swarm Registry
+# Skills Bundle by Sujal
+# Platform: Google Antigravity 2.0 + Antigravity IDE
+# Last updated: 2026-08-28
 
 ---
 
-## ARCHITECTURE: 3-TIER SYSTEM
+## PLATFORM OVERVIEW: HOW THIS REPOSITORY RUNS
+
+This repository is designed for use on **two complementary Antigravity surfaces**:
+
+| Surface | Best For | Discovery Path |
+|---------|----------|----------------|
+| **Antigravity 2.0** (desktop app) | Long-running agent fleets, background task scheduling, multi-agent orchestration, Cron timers | `.agents/` folder auto-discovered at workspace root |
+| **Antigravity IDE** (VS Code fork) | Inline code editing, autocomplete, inline `Ctrl+I` fixes, diagnostic auto-fixes, code lenses | `.agents/` folder auto-discovered from project root |
+| **Antigravity CLI (`agy`)** | Terminal-based fast agent tasks, scripted automation, CI pipelines | `.agents/` folder discovered from CWD upward to `.git` root |
+
+All three surfaces share the same `.agents/` customization folder. Skills, rules, MCP configs, and hooks defined here apply everywhere.
+
+---
+
+## ARCHITECTURE: 3-TIER AGENT HIERARCHY
 
 ```
-┌─────────────────────────────────────────────────┐
-│  TIER 1: Salesman AI (User-Facing)              │
-│  @agents/start_agent.md                         │
-│  Slash: /start, /end                            │
-└──────────────────────┬──────────────────────────┘
-                       │ dispatches
-┌──────────────────────▼──────────────────────────┐
-│  TIER 2: Team Leader (Engineering Manager)      │
-│  @agents/team_leader.md                         │
-│  Manages: 8-Group Conveyor Belt                 │
-└──────────────────────┬──────────────────────────┘
-                       │ orchestrates
-┌──────────────────────▼──────────────────────────┐
-│  TIER 3: Specialized Worker Sub-Agents (×15)    │
-│  Groups 1-8 (see below)                         │
-└─────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────┐
+│  TIER 1 — USER-FACING FRONT DESK                                  │
+│  Salesman AI / Account Manager                                     │
+│  Skill: .agent/skills/start_skill.md                              │
+│  Interface: Antigravity 2.0 Chat Canvas (slash: /start, /end)     │
+└──────────────────────────┬────────────────────────────────────────┘
+                           │ dispatches (send_message)
+┌──────────────────────────▼────────────────────────────────────────┐
+│  TIER 2 — ENGINEERING MANAGER                                     │
+│  Team Leader (Agent 00)                                           │
+│  Skill: .agent/skills/team_leader_skill.md                        │
+│  Interface: Antigravity 2.0 Background Tasks pane                 │
+│  Responsibilities: 8-Group Conveyor Belt, Loop Ceilings, Routing  │
+└──────────────────────────┬────────────────────────────────────────┘
+                           │ orchestrates (invoke_subagent)
+┌──────────────────────────▼────────────────────────────────────────┐
+│  TIER 3 — SPECIALIZED WORKER SUB-AGENTS (×15+)                   │
+│  Antigravity 2.0 Subagents Pane / Background Tasks               │
+│  See Group Registry below                                         │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## MANDATORY GLOBAL RULES (Apply to ALL agents)
+## GLOBAL MANDATORY RULES (apply to ALL agents on ALL surfaces)
 
-### Financial-Grade Standards
-- **Money precision:** ALL monetary values stored as integer cents. NEVER floating-point.
-- **Password hashing:** Argon2id PRIMARY (m=65536, t=3, p=4). bcrypt ≥12 rounds fallback ONLY.
-- **JWT:** RS256 asymmetric algorithm via `jose` library. HS256 FORBIDDEN.
-- **Sessions:** HttpOnly + SameSite=Strict + Secure cookies. NEVER localStorage for tokens.
-- **CORS:** Whitelist-only. `cors({ origin: '*' })` FORBIDDEN in production.
+> Rules in this `AGENTS.md` are loaded by Antigravity using **hierarchical
+> directory walking** from the CWD upward to the `.git` root.
+> They apply to every agent conversation in this repository.
 
-### Zero-Trust Standards
-- NEVER hardcode secrets. ALL from `process.env`.
-- NEVER string-interpolate SQL. ALL queries parameterized.
-- NEVER log PII (email, password, SSN, CC) to console or disk.
-- NEVER deploy without staging verification and rollback insurance.
+### Security Standards (Zero-Trust)
+- ALL password hashing: **Argon2id** (m=65536, t=3, p=4). `bcrypt` is a
+  legacy fallback at ≥12 rounds only. MD5/SHA-1/SHA-256 for passwords: FORBIDDEN.
+- ALL JWT: **RS256** (asymmetric). HS256 (symmetric): FORBIDDEN.
+- ALL session cookies: `HttpOnly + SameSite=Strict + Secure`. `localStorage`
+  for auth tokens: FORBIDDEN.
+- ALL SQL queries: parameterized bindings. String interpolation in SQL: FORBIDDEN.
+- ALL CORS: exact whitelist. `cors({ origin: '*' })` in production: FORBIDDEN.
+- ALL monetary values: integer cents (e.g., \$10.99 = 1099). Float money math: FORBIDDEN.
 
-### Verification Standards
-- `tsc --noEmit` MUST exit 0 before any Group advances.
-- `npm audit --audit-level=high` MUST exit 0 before deployment.
-- Test coverage MUST be ≥ 85% lines for service/utility functions.
-- DevSecOps audit MUST show 0 CRITICAL, 0 HIGH findings before Group 7.
+### Verification Gates (must exit 0 before any pipeline stage advances)
+- `npx tsc --noEmit --strict` — TypeScript compilation
+- `npx eslint . --max-warnings 0` — Lint gate
+- `npm audit --audit-level=high` — CVE gate
+- `npx jest --coverage --coverageThreshold='{"global":{"lines":85}}'` — Test gate
+- `semgrep --config=p/sql-injection` — SAST gate (or grep fallback)
+
+### Folder Enforcement
+- Documentation ONLY: `1_COMPLETE_DOCUMENTATION/`
+- Source code ONLY: `2_MAIN_CODING_FILES/`
+- Logs/backups ONLY: `3_PROJECT_BACKUP_AND_DIARY/`
+- Code MUST NOT go into folder 1 or 3.
 
 ---
 
 ## 8-GROUP CONVEYOR BELT
 
-| Group | Phase | Slash Command | Hard Gates | Key Skills |
-|-------|-------|---------------|------------|------------|
-| **G1** | Product Discovery | `/research` → `/spec` | HARD STOP after spec for Boss approval | research_skill, spec_skill |
-| **G2** | System Blueprint | `/architecture` → `/document` | HARD STOP after 7 docs for Boss approval | architecture_skill, document_skill |
-| **G3** | Full-Stack Build | `/build-all` | All 7 docs + agents.md + tasks.md must exist | build_skill (dispatches 5 workers) |
-| **G4** | QA Audit | `/qa-test` | G3 COMPLETED + tsc exit 0 | qa_skill |
-| **G5** | Polish Loop | `/polish` | G4 PASS | polish_skill → surgical_skill (MAX 2 loops) |
-| **G6** | Audit & Compliance | `/sec-ops` + `/audit` + `/hardware-compliance` | G5 PASS | sec_ops_skill, auditor_skill, hardware_compliance_skill |
-| **G7** | Documentation & Memory | auto | G6 PASS (0 CRITICAL/HIGH) | memory_skill, user_manual_writer_skill |
-| **G8** | Production Release | `/deploy` MANUAL ONLY | ALL previous groups + 7 pre-deploy gates | deploy_skill → specialists |
+| Group | Phase | Slash Command | Hard Stop? | Required Gates Before Starting |
+|-------|-------|---------------|------------|-------------------------------|
+| G1 | Product Discovery | `/research` → `/spec` | ✅ After spec, Boss must approve | None |
+| G2 | System Blueprint | `/architecture` → `/document` | ✅ After 7 docs, Boss must approve | G1 COMPLETED |
+| G3 | Full-Stack Build | `/build-all` | No (auto) | 7 docs + agents.md + tasks.md |
+| G4 | QA Audit | `/qa-test` | No (auto) | G3 COMPLETED + `tsc` exit 0 |
+| G5 | Polish Loop | `/polish` (max 2×) | No | G4 PASSED |
+| G6 | Compliance Audit | `/sec-ops` → `/audit` | No | G5 COMPLETED |
+| G7 | Documentation | auto | No | G6: 0 CRITICAL/HIGH |
+| G8 | Deployment | `/deploy` **MANUAL ONLY** | ✅ Always | ALL previous + 7 pre-deploy gates |
 
 ---
 
-## TIER 1: User-Facing Management
+## SUB-AGENT SPAWNING SCHEMA
 
-- [@agents/start_agent.md](agents/start_agent.md) — Salesman AI / Account Manager
-  - Skill: `.agent/skills/start_skill.md`
-  - Slash: `/start`, `/end`
+Agents in this repository are spawned using Antigravity's `invoke_subagent`
+tool. Every sub-agent dispatch must follow this schema:
 
----
+```json
+{
+  "TypeName": "<subagent-type-name>",
+  "Role": "<2-5 word human-readable role title>",
+  "Prompt": "<Complete, self-contained task prompt. Must include: which files to read, what to build, what to log to diary_1, what to update in diary_3. NEVER assume the subagent has conversation context — state everything explicitly.>",
+  "Model": "inherit"
+}
+```
 
-## TIER 2: Engineering Management & Orchestration
+### Inter-Agent Messaging (send_message)
+When a parent agent needs to send instructions mid-task to an already-running
+sub-agent, use the `send_message` tool with the sub-agent's `conversationId`
+(returned by `invoke_subagent`).
 
-- [@agents/team_leader.md](agents/team_leader.md) — Agent 00: Team Leader & 8-Group Orchestrator
-  - Skill: `.agent/skills/team_leader_skill.md`
+```
+send_message(
+  Recipient: "<conversationId from invoke_subagent>",
+  Message: "<Updated instructions or additional context>"
+)
+```
 
----
+### State Synchronization via Diary Files
+All agents synchronize state through 3 universal diary files — not through
+direct memory transfer:
 
-## TIER 3: Specialized Workforce (8 Groups)
-
-### Group 1: Product Discovery & Specification
-- [@agents/research_agent.md](agents/research_agent.md) — Agent 01: Market & API Researcher
-  - Skill: `.agent/skills/research_skill.md`
-- [@agents/spec_agent.md](agents/spec_agent.md) — Agent 02: Master Spec Writer
-  - Skill: `.agent/skills/spec_skill.md`
-
-### Group 2: System Architecture & 7 Compulsory Documents
-- [@agents/architecture_agent.md](agents/architecture_agent.md) — Agent 03: System Architect
-  - Skill: `.agent/skills/architecture_skill.md`
-- [@agents/document_agent.md](agents/document_agent.md) — Agent 03b: Documentarian Architect
-  - Skill: `.agent/skills/document_skill.md`
-  - **Note:** `documentarian_architect_skill.md` is RETIRED — this skill is canonical.
-
-### Group 3: Full-Stack Construction (5 Parallel Workers)
-- [@agents/builder_agent.md](agents/builder_agent.md) — Build Orchestrator (dispatches 5 workers)
-  - Skill: `.agent/skills/build_skill.md`
-- [@agents/frontend_builder.md](agents/frontend_builder.md) — Agent 05: Front-End UI/UX Builder
-  - Skill: `.agent/skills/frontend_builder_skill.md`
-  - **Note:** `build_frontend.md` is RETIRED — this skill is canonical.
-- [@agents/backend_builder.md](agents/backend_builder.md) — Agent 06: Backend API Builder
-  - Skill: `.agent/skills/backend_builder_skill.md`
-  - **Note:** `build_backend.md` is RETIRED — this skill is canonical.
-- [@agents/database_builder.md](agents/database_builder.md) — Agent 07: Database Architect
-  - Skill: `.agent/skills/database_builder_skill.md`
-- [@agents/security_guard.md](agents/security_guard.md) — Agent 08: Zero-Trust Security Guard
-  - Skill: `.agent/skills/security_guard_skill.md`
-- [@agents/github_saver.md](agents/github_saver.md) — Agent 09: Version Control Defender
-  - Skill: `.agent/skills/github_saver_skill.md`
-
-### Group 4: Quality Assurance & Defect Remediation
-- [@agents/qa_agent.md](agents/qa_agent.md) — Agent 10: 3-Pillar QA & Testing Agent
-  - Skill: `.agent/skills/qa_skill.md`
-- [@agents/surgical_agent.md](agents/surgical_agent.md) — Agent 14: Precision Surgeon
-  - Skill: `.agent/skills/surgical_skill.md`
-
-### Group 5: Visual UX Refinement & Polish (Max 2 Loops)
-- [@agents/polish_agent.md](agents/polish_agent.md) — Agent 13: UI/UX Enhancement Polisher
-  - Skill: `.agent/skills/polish_skill.md`
-
-### Group 6: Enterprise Audit, Security & Hardware Safety
-- [@agents/auditor_agent.md](agents/auditor_agent.md) — Agent 17: Pre-Built Recovery Auditor
-  - Skill: `.agent/skills/auditor_skill.md`
-- [@agents/sec_ops_agent.md](agents/sec_ops_agent.md) — Agent 18: DevSecOps Vulnerability Scanner
-  - Skill: `.agent/skills/sec_ops_skill.md`
-- [@agents/hardware_compliance.md](agents/hardware_compliance.md) — Agent 19: Hardware Safety Specialist
-  - Skill: `.agent/skills/hardware_compliance_skill.md`
-
-### Group 7: Documentation, User Manual & Memory
-- [@agents/memory_agent.md](agents/memory_agent.md) — Agent 15: Memory Keeper & Context Rot Prevention
-  - Skill: `.agent/skills/memory_skill.md`
-  - **Note:** `memory_keeper_skill.md` is RETIRED — this skill is canonical.
-- [@agents/user_manual_writer.md](agents/user_manual_writer.md) — Agent 16: End-User Manual Writer
-  - Skill: `.agent/skills/user_manual_writer_skill.md`
-
-### Group 8: Production Release (STRICTLY MANUAL ONLY — NEVER AUTO)
-- [@agents/deploy_agent.md](agents/deploy_agent.md) — Master Deployment Orchestrator
-  - Skill: `.agent/skills/deploy_skill.md`
-- [@agents/web_deploy_agent.md](agents/web_deploy_agent.md) — Web & Cloud Deployment Specialist
-  - Skill: `.agent/skills/web_deploy_skill.md`
-- [@agents/playstore_deploy_agent.md](agents/playstore_deploy_agent.md) — Google Play Store Specialist
-  - Skill: `.agent/skills/playstore_deploy_skill.md`
-- [@agents/appstore_deploy_agent.md](agents/appstore_deploy_agent.md) — Apple App Store Specialist
-  - Skill: `.agent/skills/appstore_deploy_skill.md`
-- [@agents/github_deploy_agent.md](agents/github_deploy_agent.md) — GitHub CI/CD Specialist
-  - Skill: `.agent/skills/github_deploy_skill.md`
+| Diary File | Purpose | Who Writes | Who Reads |
+|-----------|---------|-----------|----------|
+| `3_PROJECT_BACKUP_AND_DIARY/diary_1_audit_log.md` | All agent actions + timestamps | Every agent (mandatory) | Team Leader, Auditor |
+| `3_PROJECT_BACKUP_AND_DIARY/diary_2_api_registry.md` | All API endpoints defined | Backend Builder, Document Agent | Frontend Builder, QA |
+| `3_PROJECT_BACKUP_AND_DIARY/diary_3_task_matrix.md` | Phase status (NOT_STARTED / IN_PROGRESS / COMPLETED) | Team Leader | All agents |
 
 ---
 
-## CONSOLIDATION LOG (Retired Files)
+## PROGRESSIVE DISCLOSURE: HOW SKILLS ARE LOADED
 
-The following files have been consolidated into their canonical counterparts:
+Antigravity uses progressive disclosure to manage context window efficiently:
 
-| Retired File | Canonical File | Reason |
-|-------------|----------------|--------|
-| `build_backend.md` | `backend_builder_skill.md` | Duplicate coverage of same agent |
-| `build_frontend.md` | `frontend_builder_skill.md` | Duplicate coverage of same agent |
-| `memory_keeper_skill.md` | `memory_skill.md` | Subset functionality, now merged |
-| `documentarian_architect_skill.md` | `document_skill.md` | Subset functionality, now merged |
+1. **At conversation start**: Only skill `name` and `description` (from YAML
+   frontmatter) are injected into context. Full skill body is NOT loaded.
+2. **On activation**: When the model (or user) explicitly references a skill
+   (via slash command or `view_file`), the full `SKILL.md` body is loaded.
+3. **Memory eviction**: If context window pressure is high, skills that have
+   not been referenced in recent turns may be evicted. The name/description
+   index is always retained.
 
-Retired files contain a deprecation header directing users to the canonical skill.
+**Implication for skill authors:** Every `SKILL.md` MUST have a `description`
+in YAML frontmatter that fully explains what the skill does. The description
+is the ONLY guaranteed-loaded content.
 
 ---
 
-## QUICK-REFERENCE: SLASH COMMAND MAP
+## AGENT GROUP REGISTRY
 
-| Command | Tier | Group | Dispatches |
-|---------|------|-------|------------|
-| `/start` | 1 | — | Team Leader initialization |
-| `/end` | 1 | — | Graceful shutdown |
-| `/research` | 1 | G1 | Researcher sub-agent |
-| `/spec` | 1 | G1 | Spec Writer sub-agent |
-| `/architecture` | 2 | G2 | Architecture Agent |
-| `/document` | 1 | G2 | Documentarian Architect sub-agent |
-| `/build-all` | 1 | G3 | 5 parallel worker sub-agents |
-| `/qa-test` | 2 | G4 | QA Agent |
-| `/polish` | 1 | G5 | Polisher sub-agent |
-| `/surgical` | 1 | G4/G5/G6 | Surgeon sub-agent |
-| `/sec-ops` | 2 | G6 | DevSecOps scanner |
-| `/audit` | 1 | G6 | Auditor Recovery sub-agents |
-| `/hardware-compliance` | 2 | G6 | Hardware Safety Agent |
-| `/context-save` | 1 | G7 | Memory Keeper sub-agent |
-| `/context-load` | 1 | G7 | Memory Restore sub-agent |
-| `/deploy` | 1 | G8 ⚠️ MANUAL | Deployment Orchestrator |
-| `/deploy-web` | — | G8 | Web Deployment Specialist |
-| `/deploy-playstore` | — | G8 | Play Store Specialist |
-| `/deploy-appstore` | — | G8 | App Store Specialist |
-| `/deploy-github` | — | G8 | GitHub CI/CD Specialist |
+### GROUP 1: Product Discovery
+
+| Agent | File | Skill | Antigravity Tool |
+|-------|------|-------|-----------------|
+| Researcher | `agents/research_agent.md` | `.agent/skills/research_skill.md` | `invoke_subagent` (Workspace: inherit) |
+| Spec Writer | `agents/spec_agent.md` | `.agent/skills/spec_skill.md` | `invoke_subagent` (Workspace: inherit) |
+
+### GROUP 2: System Blueprint (7 Compulsory Documents)
+
+| Agent | File | Skill |
+|-------|------|-------|
+| System Architect (Agent 03) | `agents/architecture_agent.md` | `.agent/skills/architecture_skill.md` |
+| Documentarian (Agent 03b) | `agents/document_agent.md` | `.agent/skills/document_skill.md` |
+
+### GROUP 3: Full-Stack Construction
+
+| Agent | File | Skill | Runs concurrently? |
+|-------|------|-------|-------------------|
+| Build Orchestrator | `agents/builder_agent.md` | `.agent/skills/build_skill.md` | No — dispatches others |
+| Frontend Builder (Agent 05) | `agents/frontend_builder.md` | `.agent/skills/frontend_builder_skill.md` | ✅ Yes (parallel) |
+| Backend Builder (Agent 06) | `agents/backend_builder.md` | `.agent/skills/backend_builder_skill.md` | ✅ Yes (parallel) |
+| Database Architect (Agent 07) | `agents/database_builder.md` | `.agent/skills/database_builder_skill.md` | ✅ Yes (parallel) |
+| Security Guard (Agent 08) | `agents/security_guard.md` | `.agent/skills/security_guard_skill.md` | ✅ Yes (parallel) |
+| Version Control (Agent 09) | `agents/github_saver.md` | `.agent/skills/github_saver_skill.md` | ✅ Yes (parallel) |
+
+### GROUP 4: Quality Assurance
+
+| Agent | File | Skill |
+|-------|------|-------|
+| QA Agent (Agent 10) | `agents/qa_agent.md` | `.agent/skills/qa_skill.md` |
+| Surgeon (Agent 14) | `agents/surgical_agent.md` | `.agent/skills/surgical_skill.md` |
+
+### GROUP 5: Polish (Max 2 Iterations — Team Leader enforces)
+
+| Agent | File | Skill |
+|-------|------|-------|
+| Polisher (Agent 13) | `agents/polish_agent.md` | `.agent/skills/polish_skill.md` |
+
+### GROUP 6: Audit & Compliance
+
+| Agent | File | Skill |
+|-------|------|-------|
+| Recovery Auditor (Agent 17) | `agents/auditor_agent.md` | `.agent/skills/auditor_skill.md` |
+| DevSecOps Scanner (Agent 18) | `agents/sec_ops_agent.md` | `.agent/skills/sec_ops_skill.md` |
+| Hardware Safety (Agent 19) | `agents/hardware_compliance.md` | `.agent/skills/hardware_compliance_skill.md` |
+
+### GROUP 7: Documentation & Memory
+
+| Agent | File | Skill |
+|-------|------|-------|
+| Memory Keeper (Agent 15) | `agents/memory_agent.md` | `.agent/skills/memory_skill.md` |
+| Manual Writer (Agent 16) | `agents/user_manual_writer.md` | `.agent/skills/user_manual_writer_skill.md` |
+
+### GROUP 8: Deployment (MANUAL ONLY — Team Leader NEVER auto-invokes)
+
+| Agent | File | Skill |
+|-------|------|-------|
+| Deployment Orchestrator | `agents/deploy_agent.md` | `.agent/skills/deploy_skill.md` |
+| Web Specialist | `agents/web_deploy_agent.md` | `.agent/skills/web_deploy_skill.md` |
+| Play Store Specialist | `agents/playstore_deploy_agent.md` | `.agent/skills/playstore_deploy_skill.md` |
+| App Store Specialist | `agents/appstore_deploy_agent.md` | `.agent/skills/appstore_deploy_skill.md` |
+| GitHub CI/CD Specialist | `agents/github_deploy_agent.md` | `.agent/skills/github_deploy_skill.md` |
+
+---
+
+## MCP TOOL GOVERNANCE
+
+Tool execution policies (configured in Antigravity Settings or `mcp_config.json`):
+
+| Policy | Trigger | Examples |
+|--------|---------|---------|
+| `always-proceed` | Read-only, non-destructive tools | File reads, web searches, `git log`, `ls` |
+| `request-review` | Destructive or irreversible commands | `DROP TABLE`, `rm -rf`, force-push, production deploy |
+| `proceed-in-sandbox` | Commands with side effects that can be safely isolated | `npm install`, test database commands |
+
+---
+
+## CONSOLIDATION LOG
+
+| Retired File | Canonical Replacement |
+|-------------|----------------------|
+| `build_backend.md` | `backend_builder_skill.md` |
+| `build_frontend.md` | `frontend_builder_skill.md` |
+| `memory_keeper_skill.md` | `memory_skill.md` |
+| `documentarian_architect_skill.md` | `document_skill.md` |
+
+---
+
+## SLASH COMMAND QUICK REFERENCE
+
+| Command | Phase | Dispatches |
+|---------|-------|-----------|
+| `/start` | T1 | Team Leader init |
+| `/end` | T1 | Graceful shutdown |
+| `/research` | G1 | Researcher sub-agent |
+| `/spec` | G1 | Spec Writer sub-agent |
+| `/architecture` | G2 | Architecture Agent |
+| `/document` | G2 | Documentarian sub-agent |
+| `/build-all` | G3 | 5 parallel worker sub-agents |
+| `/qa-test` | G4 | QA Agent |
+| `/polish` | G5 | Polisher sub-agent (max 2×) |
+| `/surgical` | G4/G5/G6 | Surgeon sub-agent |
+| `/sec-ops` | G6 | DevSecOps Scanner |
+| `/audit` | G6 | Recovery Auditor |
+| `/hardware-compliance` | G6 | Hardware Safety Agent |
+| `/context-save` | G7 | Memory Keeper (also runs nightly via Cron) |
+| `/context-load` | G7 | Memory Restore sub-agent |
+| `/deploy` | G8 ⚠️ MANUAL | Deployment Orchestrator |

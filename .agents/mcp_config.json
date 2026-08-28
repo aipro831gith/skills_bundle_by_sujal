@@ -1,0 +1,124 @@
+{
+  "_comment": "MCP Config for Skills Bundle by Sujal — Google Antigravity 2.0 / Antigravity IDE",
+  "_doc": "Place this file at .agents/mcp_config.json. Antigravity discovers it automatically from the .agents/ folder.",
+  "_reference": "https://antigravity.google/docs/mcp",
+
+  "mcpServers": {
+
+    "filesystem-workspace": {
+      "_comment": "Read/write access to workspace files — safe, always-proceed",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "${workspaceRoot}"],
+      "env": {},
+      "toolExecutionPolicy": "always-proceed",
+      "description": "Grants the agent read/write access to files within the workspace root. Used by all builder sub-agents."
+    },
+
+    "postgres-analytics": {
+      "_comment": "PostgreSQL analytics database — read-only for reporting, destructive writes require review",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "${POSTGRES_ANALYTICS_URL}"],
+      "env": {
+        "POSTGRES_ANALYTICS_URL": "${POSTGRES_ANALYTICS_URL}"
+      },
+      "toolExecutionPolicy": "request-review",
+      "description": "Analytics PostgreSQL database server. Agent can run SELECT queries with always-proceed. INSERT/UPDATE/DELETE/DROP require request-review approval.",
+      "allowedTools": ["query"],
+      "toolPolicies": {
+        "query": {
+          "readPattern": "^\\s*(SELECT|EXPLAIN|SHOW|DESCRIBE)",
+          "readPolicy": "always-proceed",
+          "writePolicy": "request-review"
+        }
+      }
+    },
+
+    "github-enterprise": {
+      "_comment": "GitHub repository operations — reads always-proceed, writes (push/delete) request-review",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      },
+      "toolExecutionPolicy": "request-review",
+      "description": "GitHub MCP server for repository management. Read operations (list repos, get file, list PRs) proceed automatically. Write operations (push, create PR, delete branch) require Boss review.",
+      "toolPolicies": {
+        "get_file_contents": { "policy": "always-proceed" },
+        "list_repos": { "policy": "always-proceed" },
+        "search_repositories": { "policy": "always-proceed" },
+        "list_pull_requests": { "policy": "always-proceed" },
+        "get_pull_request": { "policy": "always-proceed" },
+        "create_or_update_file": { "policy": "request-review" },
+        "push_files": { "policy": "request-review" },
+        "create_pull_request": { "policy": "request-review" },
+        "delete_branch": { "policy": "request-review" },
+        "merge_pull_request": { "policy": "request-review" }
+      }
+    },
+
+    "docker-sandbox": {
+      "_comment": "Docker container execution for safe, isolated builds and test runs",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-docker"],
+      "env": {
+        "DOCKER_HOST": "${DOCKER_HOST:-unix:///var/run/docker.sock}"
+      },
+      "toolExecutionPolicy": "proceed-in-sandbox",
+      "description": "Docker MCP server for isolated command execution. Build and test commands run in a sandboxed container. Prevents side effects from reaching the host system. Container destruction requires request-review.",
+      "toolPolicies": {
+        "run_container": { "policy": "proceed-in-sandbox" },
+        "build_image": { "policy": "proceed-in-sandbox" },
+        "exec_in_container": { "policy": "proceed-in-sandbox" },
+        "remove_container": { "policy": "request-review" },
+        "remove_image": { "policy": "request-review" }
+      }
+    },
+
+    "sast-security-scanner": {
+      "_comment": "SAST scanning via semgrep — read-only analysis, always-proceed",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-semgrep"],
+      "env": {
+        "SEMGREP_APP_TOKEN": "${SEMGREP_APP_TOKEN}"
+      },
+      "toolExecutionPolicy": "always-proceed",
+      "description": "Static Application Security Testing server using semgrep. Scans source code for SQL injection, XSS, secret leaks, OWASP Top 10 patterns. Read-only — never modifies source. Used by sec_ops_skill.md (Agent 18).",
+      "allowedRules": [
+        "p/sql-injection",
+        "p/secrets",
+        "p/owasp-top-ten",
+        "p/xss",
+        "p/javascript",
+        "p/typescript"
+      ]
+    },
+
+    "sequential-thinking": {
+      "_comment": "Structured multi-step reasoning tool — always-proceed, used during /plan and architecture phases",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "env": {},
+      "toolExecutionPolicy": "always-proceed",
+      "description": "Provides structured sequential reasoning for complex multi-step planning tasks. Used by Team Leader (Agent 00) and Architecture Agent (Agent 03) during /plan mode."
+    },
+
+    "brave-search": {
+      "_comment": "Web search for research_skill.md (Agent 01) — always-proceed, no writes",
+      "transport": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "env": {
+        "BRAVE_API_KEY": "${BRAVE_API_KEY}"
+      },
+      "toolExecutionPolicy": "always-proceed",
+      "description": "Web search server used by Research Agent (Agent 01) for competitor analysis, CVE lookups, library version checks, and hardware datasheet research. Read-only."
+    }
+
+  }
+}
