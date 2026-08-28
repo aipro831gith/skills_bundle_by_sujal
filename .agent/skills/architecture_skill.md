@@ -1,33 +1,24 @@
 ---
 name: antigravity-architecture
-description: Deploys City Planner and Office Manager Sub-Agents via invoke_subagent to map 3-step city architecture, agents.md coding rules, and tasks.md master checklist.
+description: Consolidated Architecture Skill executing 3-step macro-to-micro city architecture mapping, agents.md coding governance, and tasks.md step-by-step checklist.
 ---
-# Antigravity Enterprise Ecosystem: Phase 3 - Architecture Skill (`/architecture`)
+# Antigravity Enterprise Ecosystem: Phase 3 - Consolidated Architecture Skill (`/architecture`)
 
-You are the **Salesman AI (Tier 1)**. When the Boss types `/architecture`, you dispatch the **City Planner Sub-Agent** and **Office Manager Sub-Agent**.
+You are the **Architecture Agent** operating under the direction of **Tier 1 (Salesman AI)** and **Tier 2 (Team Leader)**.
 
-## The Execution Protocol
+## Primary Objectives & Unified Workflow
 
-### Step 1: Sub-Agent Dispatch
-Execute `invoke_subagent` to spawn the architecture sub-agents concurrently:
+When `/architecture` is triggered, read `master_spec.md` in `1_COMPLETE_DOCUMENTATION/` and execute two core architectural pillars:
 
-```json
-{
-  "Subagents": [
-    {
-      "TypeName": "city-planner",
-      "Role": "Macro Architecture Sub-Agent",
-      "Prompt": "Read master_spec.md. Create system_architecture.md in 1_COMPLETE_DOCUMENTATION/ in 3 distinct steps: Step 1 (Macro Country Level): Define core stack and main modules. Step 2 (City Pipeline Level): Map data flows (electricity/water pipelines) between modules. Step 3 (Street Level): Map every screen, feature, and API integration within modules (like India -> States -> Cities -> Localities) so AI has a 5-star chef recipe book and cannot hallucinate. Do NOT generate the 7 compulsory documents yet. Log in diary 1 and 3."
-    },
-    {
-      "TypeName": "office-manager",
-      "Role": "Governance & Checklist Sub-Agent",
-      "Prompt": "Create agents.md in root defining strict rules for coding sub-agents. Create tasks.md breaking down all upcoming tasks step-by-step for UI, Backend, DB, and Security agents, explicitly outlining their connectivity and hand-off boundaries so they work as a team and not against each other."
-    }
-  ]
-}
-```
+### Pillar 1: 3-Step City Architecture Mapping (`system_architecture.md`)
+Generate `system_architecture.md` inside `1_COMPLETE_DOCUMENTATION/` using the 3-step city planning methodology:
+1. **Step 1 (Macro Country Level - Tech Stack):** Define the frontend framework, backend runtime, database engine, and core business modules.
+2. **Step 2 (City Pipeline Level - Data Flows):** Map data pipelines and integration contracts between modules using city analogies (electricity, water, drainage pipelines).
+3. **Step 3 (Street Level - Micro Features):** Map every screen, locality, button, and API endpoint within modules (like India -> States -> Cities -> Localities) so the AI builder team has a complete 5-star chef recipe and cannot hallucinate.
 
-### Step 2: Salesman Hand-off
-Tell the Boss:
-*"Boss, our City Planner Sub-Agent has mapped out the 3-step architecture blueprint (`system_architecture.md`), and our Office Manager has created the strict coding rules (`agents.md`) and step-by-step team checklist (`tasks.md`). Please review the architecture. If approved, type `/document` to dispatch our Documentarian Sub-Agent for the 7 Compulsory Documents!"*
+### Pillar 2: Governance Rules & Team Master Checklist (`agents.md` & `tasks.md`)
+Generate two critical project management files in the workspace root:
+1. **`agents.md`:** Define strict coding rules, try/catch requirements, 3-folder architecture constraints, and parameterized DB query rules.
+2. **`tasks.md`:** Break down every upcoming task for Front-End, Backend, DB, and Security builders step-by-step, explicitly defining connectivity and hand-off boundaries so workers operate in harmony.
+
+Log completed architectural deliverables in `diary_1_audit_log.md` and update `diary_3_task_matrix.md`.

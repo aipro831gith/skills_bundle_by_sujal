@@ -32,10 +32,10 @@ You MUST NOT block execution or wait synchronously in a single thread while work
 | :--- | :--- |
 | **`/research`** | Spawns `researcher` sub-agent for web search on competitors, APIs, and hardware protocols. |
 | **`/spec`** | Spawns `spec-writer` sub-agent for local skill detection, word breakdown of UI/math, and `master_spec.md` generation. |
-| **`/architecture`** | Spawns `city-planner` (3-step city mapping) and `office-manager` (`agents.md` rules & `tasks.md` checklist). |
+| **`/architecture`** | Spawns consolidated `architecture-agent` (3-step city mapping, `agents.md` rules & `tasks.md` checklist). |
 | **`/document`** | Spawns `documentarian-architect` for **ALL 7 Compulsory Documents** in folder 1. |
 | **`/build-all`** | Spawns **5 Concurrent Sub-Agents** (`frontend-builder`, `backend-builder`, `database-builder`, `security-guard`, `github-saver`). Enforces parameterized queries & zero hardcoded keys. |
-| **`/qa-test`** | Spawns **3 Concurrent Sub-Agents** (`spell-checker`, `math-checker`, `human-tester`) enforcing the 3 Paths Rule. |
+| **`/qa-test`** | Spawns consolidated `qa-agent` executing 3-pillar QA audits (Syntax, Math, Human Flow) with the 3 Paths Rule. |
 | **`/sec-ops`** | Spawns `sec-ops` sub-agent for DevSecOps automated code scanning (PII, typosquatted dependencies, open endpoints). |
 | **`/hardware-compliance`** | Spawns `hardware-compliance` sub-agent for C/C++/Rust bounds checking, MISRA rules, and zero-panic memory safety. |
 | **`/polish`** | Spawns `polisher` sub-agent for UX/UI visual sweep and enhancement report. |

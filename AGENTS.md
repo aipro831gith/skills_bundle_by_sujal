@@ -13,12 +13,10 @@ This file maps all agent personas directly to their respective persona files in 
 
 ## ⚡ Tier 3: Specialized Worker Agents
 
-### Research & Planning Agents
+### Research & Architecture Agents
 - @agents/research_agent.md (Agent 01: Market & API Researcher)
 - @agents/spec_agent.md (Agent 02: Master Spec Writer)
-- @agents/architecture_agent.md (Architecture Orchestrator Agent)
-- @agents/city_planner.md (Agent 03: Macro-to-Micro City Planner)
-- @agents/office_manager.md (Agent 04: Governance & Task Matrix Manager)
+- @agents/architecture_agent.md (Consolidated System Architecture & Governance Agent)
 - @agents/document_agent.md (Documentation Orchestrator Agent)
 - @agents/documentarian.md (Agent 03b: Compulsory Documentarian Architect)
 
@@ -31,10 +29,7 @@ This file maps all agent personas directly to their respective persona files in 
 - @agents/github_saver.md (Agent 09: Version Control & Dependency Saver)
 
 ### Quality Assurance & Testing Agents
-- @agents/qa_agent.md (QA Master Orchestrator)
-- @agents/spell_checker.md (Agent 10: Syntax & Compilation Checker)
-- @agents/math_checker.md (Agent 11: Business Math & Logic Checker)
-- @agents/human_tester.md (Agent 12: Human UI Flow Simulator)
+- @agents/qa_agent.md (Consolidated QA, Syntax, Math & Human Testing Agent)
 
 ### Refinement, Security & Hardware Compliance Agents
 - @agents/polish_agent.md (Agent 13: UI/UX Polisher)
