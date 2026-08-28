@@ -1,0 +1,44 @@
+# Environment variables (NEVER COMMIT)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.staging
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+coverage/
+.gate/
+
+# IDE & OS
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Secrets & Keys
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+id_rsa
+id_ecdsa
+
+# Antigravity temporary execution artifacts
+*.tmp
+*.log
